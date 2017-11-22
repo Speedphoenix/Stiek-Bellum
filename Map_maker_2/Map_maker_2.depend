@@ -1,0 +1,16 @@
+# depslib dependency file v1.0
+1492014788 source:/home/leonardo/Documents/Programmes/C/Map_maker_2/main.c
+	<stdio.h>
+	<stdlib.h>
+	<allegro.h>
+
+1495629298 source:/home/leonardo/Documents/Programmes/C/eceCraft/Map_maker_2/main.c
+	<stdio.h>
+	<stdlib.h>
+	<allegro.h>
+
+1493841691 source:/home/speedphoenix/Documents/Programmes/C/eceCraft/Map_maker_2/main.c
+	<stdio.h>
+	<stdlib.h>
+	<allegro.h>
+
