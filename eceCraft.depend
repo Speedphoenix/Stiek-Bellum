@@ -1,0 +1,101 @@
+# depslib dependency file v1.0
+1496410374 source:/home/leonardo/Documents/Programmes/C/eceCraft/main.c
+	"menu.h"
+
+1496409962 source:/home/leonardo/Documents/Programmes/C/eceCraft/load.c
+	"load.h"
+
+1496404892 /home/leonardo/Documents/Programmes/C/eceCraft/load.h
+	"evennement.h"
+
+1496410408 source:/home/leonardo/Documents/Programmes/C/eceCraft/auto.c
+	"auto.h"
+
+1496065298 /home/leonardo/Documents/Programmes/C/eceCraft/auto.h
+	"load.h"
+
+1493218740 source:/home/leonardo/Documents/Programmes/C/eceCraft/chaine.c
+	"chaine.h"
+
+1496171102 /home/leonardo/Documents/Programmes/C/eceCraft/chaine.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<allegro.h>
+	"chaine_b.h"
+
+1496699036 /home/leonardo/Documents/Programmes/C/eceCraft/evennement.h
+	"chaine_b.h"
+
+1496168020 source:/home/leonardo/Documents/Programmes/C/eceCraft/evennement.c
+	"evennement.h"
+
+1495562640 /home/leonardo/Documents/Programmes/C/eceCraft/draw.h
+	"auto.h"
+
+1496410024 source:/home/leonardo/Documents/Programmes/C/eceCraft/draw.c
+	"draw.h"
+
+1495639394 /home/leonardo/Documents/Programmes/C/eceCraft/chaine_b.h
+	"chaine.h"
+
+1492980744 source:/home/leonardo/Documents/Programmes/C/eceCraft/chaine_b.c
+	"chaine_b.h"
+
+1496245302 /home/leonardo/Documents/Programmes/C/eceCraft/menu.h
+	"draw.h"
+
+1496405260 source:/home/leonardo/Documents/Programmes/C/eceCraft/menu.c
+	"menu.h"
+
+1496410407 source:/home/speedphoenix/Documents/Programmes/C/eceCraft/auto.c
+	"auto.h"
+
+1496065298 /home/speedphoenix/Documents/Programmes/C/eceCraft/auto.h
+	"load.h"
+
+1496404892 /home/speedphoenix/Documents/Programmes/C/eceCraft/load.h
+	"evennement.h"
+
+1496523258 /home/speedphoenix/Documents/Programmes/C/eceCraft/evennement.h
+	"chaine_b.h"
+
+1495639394 /home/speedphoenix/Documents/Programmes/C/eceCraft/chaine_b.h
+	"chaine.h"
+
+1496171102 /home/speedphoenix/Documents/Programmes/C/eceCraft/chaine.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<allegro.h>
+	"chaine_b.h"
+
+1493218740 source:/home/speedphoenix/Documents/Programmes/C/eceCraft/chaine.c
+	"chaine.h"
+
+1492980744 source:/home/speedphoenix/Documents/Programmes/C/eceCraft/chaine_b.c
+	"chaine_b.h"
+
+1496410024 source:/home/speedphoenix/Documents/Programmes/C/eceCraft/draw.c
+	"draw.h"
+
+1495562640 /home/speedphoenix/Documents/Programmes/C/eceCraft/draw.h
+	"auto.h"
+
+1496168020 source:/home/speedphoenix/Documents/Programmes/C/eceCraft/evennement.c
+	"evennement.h"
+
+1496409962 source:/home/speedphoenix/Documents/Programmes/C/eceCraft/load.c
+	"load.h"
+
+1496410373 source:/home/speedphoenix/Documents/Programmes/C/eceCraft/main.c
+	"menu.h"
+
+1496245302 /home/speedphoenix/Documents/Programmes/C/eceCraft/menu.h
+	"draw.h"
+
+1496405260 source:/home/speedphoenix/Documents/Programmes/C/eceCraft/menu.c
+	"menu.h"
+
