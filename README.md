@@ -5,7 +5,6 @@ The result of a collaboration between Speedphoenix and Lazovchik
 the ready-to-play game is in the 'compiled version' folder.  
 if you can't open the game by double click you can do so by opening the folder in a terminal and go:  
 `./Stiek_Bellum`  
-The 64-bit version will be added soon  
 
 This was built on Linux using the Code::Blocks IDE, building on different platforms may cause various problems
 ##### This game is only supported on Linux
