@@ -1,6 +1,8 @@
 # Stiek-Bellum
 
 ---
+![ ](/res/menu.bmp?raw=true)
+---
 #### EN
 
 An RTS type game done as an academic project in the first year of university  
