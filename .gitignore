@@ -5,3 +5,4 @@
 *.layout
 obj/
 bin/
+debug*.txt
