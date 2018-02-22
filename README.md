@@ -1,7 +1,7 @@
 # Stiek-Bellum
 
 ---
-![ ](/res/menu.bmp?raw=true)
+![ ](/Res/Menu.bmp?raw=true)
 ---
 #### EN
 
