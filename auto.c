@@ -139,7 +139,7 @@
 //               !(carte[DIV(*x+dx+cote/2)][DIV(*y+dy+cote/2)].block) && //si le déplacement en diagonale est possible
 //               !trouve(ancre, *x+dx+(cote/2), *y+dy+(cote/2), unite, NEUTR))
 //            {
-//                if (sqrt(pow(dx,2)+pow(dy,2))>speed)
+//                if ( (pow(dx, 2)+pow(dy, 2))>pow(speed, 2) )
 //                {
 //                    dx *= M_SQRT1_2;
 //                    dy *= M_SQRT1_2; //on divise par sqrt(2);
@@ -860,7 +860,7 @@ void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
            !(carte[DIV(*x+dx+cote/2)][DIV(*y+dy+cote/2)].block) && //si le déplacement en diagonale est possible
            !trouve(ancre, *x+dx+(cote/2), *y+dy+(cote/2), unite, NEUTR))
         {
-            if (sqrt(pow(dx,2)+pow(dy,2))>speed)
+            if ((pow(dx,2)+pow(dy,2)) > pow(speed, 2))
             {
                 dx *= M_SQRT1_2;
                 dy *= M_SQRT1_2; //on divise par sqrt(2);
@@ -1705,7 +1705,7 @@ void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueu
                     if (unite->side!=inter->side)
                     {
                         b = sqrt(pow(unite->x-inter->x, 2) + pow(unite->y-inter->y, 2)); //il faut ajouter +unite->cote/2 à chaque fois si on fait des unités de taille differente
-
+                            //faudrai enlever sqrt...
                         if (b<dist)
                         {
                             dist = b;
@@ -1759,7 +1759,7 @@ void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueu
                     if (unite->priority<GUARD)
                         unite->priority = AUTO;
                             //on utilise pas dist parceque ça peut etre faux (dist est pas exact pour les batiments)
-                    if (sqrt(pow(x - (unite->x+unite->cote/2), 2) + pow(y - (unite->y+unite->cote/2), 2))<unite->range)
+                    if ( (pow(x - (unite->x+unite->cote/2), 2) + pow(y - (unite->y+unite->cote/2), 2)) < pow(unite->range, 2))
                     {
                         unite->state = ATTACK;
                         unite->prec = ATTACK;

@@ -768,7 +768,7 @@ void eclaire(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int porte)
 //renvoie une booleenne: si la distance est inferieure (ou égale) ou non
 int if_dist(int x1, int y1, int x2, int y2, int dist)
 {
-    return !((sqrt(pow(x1-x2, 2) + pow(y1-y2, 2))) > dist); //theorème de phytagore
+    return !((pow(x1-x2, 2) + pow(y1-y2, 2)) > pow(dist, 2));
 }
 
 //pour voir l'optimisation, motif debug
