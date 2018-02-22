@@ -15,11 +15,11 @@
 #include "chaine_b.h" //est protégé contre les inclusions multiples
 
 
-/** erreur juste pour tester ramidement à droite et à gauche*/
+/** erreur juste pour tester rapidement à droite et à gauche*/
 #define E fprintf(stdout,"bouhou\n");fflush(stdout);
 
 /* renvoie une erreur de chargement */
-#define ERR_CHARG(x) {if(!x){allegro_message("probleme de chargement");exit(1);}}
+#define ERR_CHARG(x) {if(!x){allegro_message("probleme de chargement " #x);exit(1);}}
 
 /* Pour initialiser une ancre */
 #define NANCRE {NULL,NULL}
