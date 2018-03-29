@@ -57,7 +57,7 @@ typedef struct Batiment{
     ///combien d'unités attendent pour être formées (que pour des batiments alliés)
     int curr_queue;
     ///l'instant au début de la formation de l'unité en cours de formation
-    struct timespec start;
+    TIMESTRUCT start;
 
 ///un batiment
 }Build;

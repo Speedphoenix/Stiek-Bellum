@@ -197,7 +197,7 @@ void end_game(Sprites sprites, Joueur *joueur)
     FILE *fic;
     char nom[20];
     int quant, nouveau, tab[11];
-    struct timespec now;
+    TIMESTRUCT now;
 
     sprintf(nom, "%s%d-%d.txt", SAUV, joueur->map_num, joueur->level);
 
@@ -224,9 +224,9 @@ void end_game(Sprites sprites, Joueur *joueur)
         fclose(fic);
     }
     DEB("7-3")
-    clock_gettime(CLOCK_MONOTONIC, &now);
+    getTime(&now);
 
-    nouveau = now.tv_sec - joueur->debut.tv_sec;
+    nouveau = getSecInt(&joueur->debut, &now);
 
     j = 0;
     a = 1;

@@ -7,6 +7,17 @@
 */
 #include "evennement.h"
 
+//pour faire qqc natif à Windows...
+#ifdef _WINDOWS
+
+#define FOLDERPATH "\\"
+
+#else //sous linux etc...
+
+#define FOLDERPATH "/"
+
+#endif // _WINDOWS
+
 /* les types de menu */
 #define MAIN_MENU 0
 #define PAUSE_MENU 1
@@ -17,12 +28,12 @@
 
 
 /* les fichiers de sauvegarde et chargement */
-#define SAUV "Saves/"
+#define SAUV "Saves" FOLDERPATH
 #define VALS ".trc"
 #define MAP ".map"
 #define FOG ".fow"
 #define NAME "%ssauv%d%s"
-#define SCORE "Scores/"
+#define SCORE "Scores" FOLDERPATH
 
 
 /* des couleurs */
@@ -56,24 +67,26 @@
 #define BOUTON_H 100
 #define HOVER_W 90
 
+//le dossier qui contient toutes les bitmaps (sans les temporaires)
+#define RES "Res" FOLDERPATH
+
 
 /* Bitmaps des menus */
-#define MENU_FOND "Res/Menu.bmp"
-#define MENU_BUTTON "Res/Menu_buttons.bmp"
-#define PAUSE_FOND "Res/Pause_menu.bmp"
-#define PAUSE_BUTTON "Res/Pause_buttons.bmp"
-#define MAP_BUTTON "Res/Map_buttons.bmp"
-#define DIFF_BUTTON "Res/Diff_buttons.bmp"
-#define SAVE_BUTTON "Res/Save_buttons.bmp"
-#define FLAGS "Res/Flags.bmp"
-#define VICTORY_BUTTON "Res/Victory_buttons.bmp"
+#define MENU_FOND RES "Menu.bmp"
+#define MENU_BUTTON RES "Menu_buttons.bmp"
+#define PAUSE_FOND RES "Pause_menu.bmp"
+#define PAUSE_BUTTON RES "Pause_buttons.bmp"
+#define MAP_BUTTON RES "Map_buttons.bmp"
+#define DIFF_BUTTON RES "Diff_buttons.bmp"
+#define SAVE_BUTTON RES "Save_buttons.bmp"
+#define FLAGS RES "Flags.bmp"
+#define VICTORY_BUTTON RES "Victory_buttons.bmp"
 
-#define MOUSE "Res/Mouse.bmp"
+#define MOUSE RES "Mouse.bmp"
 
 /* nombre d'images par animation */
 #define NUMFRAMES 6
 
-#define RES "Res/"
 
 /* les noms des fichiers source (images) */
 #define HERBE "%sGrass%d.bmp"
@@ -84,43 +97,43 @@
 
 #define FLEUR "%sflower%d.bmp"
 
-#define ARBRE0 "Res/Tree_down.bmp"
-#define ARBRE1 "Res/Tree_up.bmp"
-#define ARBRE2 "Res/Pine_down.bmp"
-#define ARBRE3 "Res/Pine_up.bmp"
-#define ARBRE4 "Res/Tree_small.bmp"
+#define ARBRE0 RES "Tree_down.bmp"
+#define ARBRE1 RES "Tree_up.bmp"
+#define ARBRE2 RES "Pine_down.bmp"
+#define ARBRE3 RES "Pine_up.bmp"
+#define ARBRE4 RES "Tree_small.bmp"
 
-#define PIERRE0 "Res/Rocks.bmp"
+#define PIERRE0 RES "Rocks.bmp"
 
 #define MAIRIE0 "%sMairie%d.bmp"
 #define CASERNE0 "%sBaracks%d.bmp"
 #define CAMP0 "%sCamp%d.bmp"
 
-#define FOG_TILE "Res/fog.bmp"
+#define FOG_TILE RES "fog.bmp"
 
-#define EPEE "Res/swordsman.bmp"
-#define PAYSANT "Res/peasant.bmp"
-#define MONSTRE "Res/monster.bmp"
+#define EPEE RES "swordsman.bmp"
+#define PAYSANT RES "peasant.bmp"
+#define MONSTRE RES "monster.bmp"
 
-#define PAUSE_ICON "Res/Pause_icon.bmp"
-#define PAUSE_ICON_HOVER "Res/Pause_icon_hover.bmp"
-#define MAIRIE_ICON "Res/mairie_icon.bmp"
-#define CASERNE_ICON "Res/caserne_icon.bmp"
-#define PAYSANT_ICON "Res/peasant_icon.bmp"
-#define EPEE_ICON "Res/sword_icon.bmp"
-#define CAMP_ICON "Res/camp_icon_small.bmp"
-#define BOIS "Res/Wood_icon.bmp"
-#define PIERRE "Res/Rock_icon.bmp"
-#define VIANDE "Res/burning_enemy_icon.bmp"
-#define MANQUE "Res/enemy_icon_small.bmp"
+#define PAUSE_ICON RES "Pause_icon.bmp"
+#define PAUSE_ICON_HOVER RES "Pause_icon_hover.bmp"
+#define MAIRIE_ICON RES "mairie_icon.bmp"
+#define CASERNE_ICON RES "caserne_icon.bmp"
+#define PAYSANT_ICON RES "peasant_icon.bmp"
+#define EPEE_ICON RES "sword_icon.bmp"
+#define CAMP_ICON RES "camp_icon_small.bmp"
+#define BOIS RES "Wood_icon.bmp"
+#define PIERRE RES "Rock_icon.bmp"
+#define VIANDE RES "burning_enemy_icon.bmp"
+#define MANQUE RES "enemy_icon_small.bmp"
 
-#define BROUILLARD "Res/FogSw.bmp"
+#define BROUILLARD RES "FogSw.bmp"
 
-#define C_BAR "Res/Central_bar.bmp"
-#define UNIT_MENU "Res/Unit_menu_template.bmp"
-#define INFO_BAR "Res/Ressource_bar.bmp"
-#define IGN_L "Res/Left_border.bmp"
-#define IGN_D "Res/Down_border.bmp"
+#define C_BAR RES "Central_bar.bmp"
+#define UNIT_MENU RES "Unit_menu_template.bmp"
+#define INFO_BAR RES "Ressource_bar.bmp"
+#define IGN_L RES "Left_border.bmp"
+#define IGN_D RES "Down_border.bmp"
 
 ///la structure contenant les bitmaps
 typedef struct Sprites{

@@ -12,6 +12,8 @@
 #include <string.h>
 #include <allegro.h>
 
+#include "timefuncs.h" //functions for measuring time N' stuff
+
 #include "chaine_b.h" //est protégé contre les inclusions multiples
 
 
@@ -81,7 +83,7 @@ typedef struct Unit{
     int x, y;
     int xdest, ydest;
 
-    ///le prochain pas à faire (PAS ENCORE IMPLÉMENTÉ)
+    ///le prochain pas à faire (PAS VRAIMENT ENCORE IMPLÉMENTÉ)
     Step *step;
 
     int xpath, ypath; //la direction court-terme à prendre, en tuiles
@@ -132,9 +134,9 @@ typedef struct Unit{
     struct Batiment *bat;
 
     ///temps lors de la dernière image de l'animation
-    struct timespec since_a;
+    TIMESTRUCT since_a;
     ///temps lors du la dernière attaqu/extraction (/déplacement?)
-    struct timespec since_w;
+    TIMESTRUCT since_w;
 
 
 ///une unité

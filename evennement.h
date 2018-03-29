@@ -85,7 +85,7 @@
 #define MINECRANY 5
 #define UI_HEIGHT 225
 #define MAPWIDTH 300 //la taille de la minimap (la même que la taille de toute la map)
-#define MAXRES 999990
+#define MAXRES 999990 //la quantité max d'un type de ressource
 
 /* pour ne pas à avoir à réécrire à chaque fois */
 #define DIV(x) ((int)((x)/COTE))
@@ -204,15 +204,15 @@ typedef struct Human{
     ///le mouse_b precedent (pour certaines action on ne regarde que le front montant/descendant
     int clic_prec;
     ///le temps lors du dernier clic (pour le double clic)
-    struct timespec last_clic;
+    TIMESTRUCT last_clic;
 
     ///le nombre d'ennemis (non stationaires) présents sur la map
     int nb_enemy;
     ///le temps lors du dernier spawn d'ennemi
-    struct timespec last_spawn;
+    TIMESTRUCT last_spawn;
 
     ///Le temps initial au début de la partie
-    struct timespec debut;
+    TIMESTRUCT debut;
 
 ///structure contenant les valeurs du joueur humain (coordonnées de la caméra, quantité de ressources...)
 }Joueur;
@@ -279,7 +279,7 @@ int if_dist(int x1, int y1, int x2, int y2, int dist);
 void selec(Ancre *dest, Ancre ancre, int x1, int y1, int x2, int y2);
 
 ///pour voir l'optimisation
-void temps_passe(struct timespec *prev);
+void temps_passe(TIMESTRUCT *prev);
 
 ///libere une liste chainée de steps
 void free_path(Step **ancre);

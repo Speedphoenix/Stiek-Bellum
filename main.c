@@ -17,6 +17,11 @@
 
   *         - pathfinding : faire s'arreter les unités quand elles sont bloquées, résoudre les bugs
   *         - pathfinding : prendre en compte le creep block
+
+
+  *         - Faire une fonction isElapsed...
+
+  *         - dans load.c ligne 256 Joueur par addresse svp...
   */
 
 
@@ -35,7 +40,7 @@
 int victory_check(Joueur joueur);
 
 ///Remplace le rest: fait attendre en prenant en compte le temps écoulé depuis le dernier tour de boucle
-void attente(struct timespec *prev);
+void attente(TIMESTRUCT *prev);
 
 
 int main()
@@ -49,8 +54,8 @@ int main()
     Sprites sprites;                //La structure contenant toutes les bitmaps
     BITMAP *buffer;                 //Le buffer de l'écran
 
-    struct timespec prev;           //on garde le temps à chaque tour de boucle (pour la temporisation)
-    int choix, map, diff = -1;           //valeurs de retours du menu
+    TIMESTRUCT prev;                //on garde le temps à chaque tour de boucle (pour la temporisation)
+    int choix, map, diff = -1;      //valeurs de retours du menu
     int end;                        //la valeur de vicoire (0 si la partie est en cour, 1 si gagne, -1 si perdu)
 
     init_alleg(XSCREEN, YSCREEN);
@@ -210,20 +215,15 @@ int victory_check(Joueur joueur)
 }
 
 //pour remplacer le rest, on veut compenser pour d'eventuels gros calculs
-void attente(struct timespec *prev)
+void attente(TIMESTRUCT *prev)
 {
-    struct timespec nouveau;
-    int sec, usec, elapsed; //elapsed est en milisec
-    clock_gettime(CLOCK_MONOTONIC, &nouveau);
+    TIMESTRUCT nouveau;
+    int elapsed; //elapsed est en milisec
 
-    //le nombre de secondes passées (est généralement 0)
-    sec = nouveau.tv_sec - prev->tv_sec;
-
-    //le nombre de microsec passées (est négatif quand sec = 1)
-    usec = (int)(nouveau.tv_nsec/1000) - (int)(prev->tv_nsec/1000);
+    getTime(&nouveau);
 
     //le temps passé en milisec
-    elapsed = 1000*sec + (int)(usec/1000);
+    elapsed = getMilisec(prev, &nouveau);
 
     if (HOW_LONG)
         printf("total: %d\n\n", elapsed);
@@ -232,7 +232,7 @@ void attente(struct timespec *prev)
         rest(LAPSE-elapsed);
 
     //on prend le nouveau temps maintenant pour ne pas prendre en compte les ptits calcus d'avant
-    clock_gettime(CLOCK_MONOTONIC, prev);
+    getTime(prev);
 }
 
 

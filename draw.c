@@ -46,8 +46,9 @@ void draw_ui(BITMAP *dest, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites 
     BITMAP *temp;
     Maillon *inter;
     int p=0, a=0;
-    struct timespec prev;
-    clock_gettime(CLOCK_MONOTONIC, &prev);
+    TIMESTRUCT prev;
+
+    getTime(&prev);
 
     if (joueur.act==SELECTED || joueur.act==PLACE_BUILD)
     {
@@ -239,12 +240,12 @@ BITMAP *minimap(Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur joueur, int 
 BITMAP *game_info(Joueur joueur, Sprites *sprites)
 {
     BITMAP *rep;
-    struct timespec nouveau;
+    TIMESTRUCT nouveau;
     int sec, min;
 
-    clock_gettime(CLOCK_MONOTONIC, &nouveau);
+    getTime(&nouveau);
 
-    sec = nouveau.tv_sec - joueur.debut.tv_sec;
+    sec = getSecInt(&joueur.debut, &nouveau);
     min = (int) (sec/60);
     sec %= 60;
 
@@ -287,7 +288,7 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
     Tile chaque;
     BITMAP *raw, *temp, *fog;
     double time_max, time_current;
-    struct timespec now;
+    TIMESTRUCT now;
 
     int xval, yval;
 
@@ -431,8 +432,8 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
             if (bat->curr_queue)
             {
                 time_max = (bat->unit_queue[0]==PEASANT)?TEMPS_PAYS:TEMPS_SOLD;
-                clock_gettime(CLOCK_MONOTONIC, &now);
-                time_current = (now.tv_sec - bat->start.tv_sec) + 1e-9 * (now.tv_nsec - bat->start.tv_nsec);
+                getTime(&now);
+                time_current = getSec(&bat->start, &now);
 
                 temp = draw_status(time_max, time_current, TIME);
                 draw_sprite(raw, temp, xo + (bat->x-xmin)*COTE + 37, yo + (bat->y-ymin)*COTE - 20);

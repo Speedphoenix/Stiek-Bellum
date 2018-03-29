@@ -2,9 +2,6 @@
 
 /*
     ce fichier contient les sous programmes appellés à chaque tour de boucle de jeu pour l'actualisation
-
-    Merci à Dietrich Epp pour l'explication de timespec et clock_gettime(CLOCK_MONOTONIC...
-    http://stackoverflow.com/questions/43295845/is-the-clocks-per-sec-value-wrong-inside-a-virtual-machine/43296016#43296016
 */
 
 ////déplace l'unité en fonction de la destination
@@ -595,7 +592,7 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Joue
                     {
                         unite->bat->statione--;
                         //on remet à zero le compeur pour ne pas que l'unite suivante arrive tout de suite, et pour que le camp ne spaw pas s'il est en combat
-                        clock_gettime(CLOCK_MONOTONIC, &unite->bat->start);
+                        getTime(&unite->bat->start);
                     }
                 }
             }
@@ -1359,10 +1356,10 @@ void enlev(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
 //renvoie une booléenne: si il faut passer ou non à l'image suivante et faire avancer l'unité
 int if_elapsed(Unit *unite, int type)
 {
-    struct timespec inter;
+    TIMESTRUCT inter;
     double pas, elapsed;
 
-    clock_gettime(CLOCK_MONOTONIC, &inter);
+    getTime(&inter);
     //la précision en nanosecodes est inutile, des microsecondes auraient suffi (avec struct timeval au lieu de timespec)
 
     switch (type)
@@ -1370,11 +1367,11 @@ int if_elapsed(Unit *unite, int type)
         default:
         case ANIMATION:
         pas = DELAY;
-        elapsed = (inter.tv_sec - unite->since_a.tv_sec) + 1e-9 * (inter.tv_nsec - unite->since_a.tv_nsec); //1e-9: on multiplie par 0.000 000 001 (nanosecondes
+        elapsed = getSec(&unite->since_a, &inter);
     break;
         case WORK:
         pas = unite->delay;
-        elapsed = (inter.tv_sec - unite->since_w.tv_sec) + 1e-9 * (inter.tv_nsec - unite->since_w.tv_nsec);
+        elapsed = getSec(&unite->since_w, &inter);
     break;
     }
 
@@ -1400,13 +1397,13 @@ int if_elapsed(Unit *unite, int type)
 void formation(Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY], Build *build)
 {
     int i;
-    struct timespec now;
+    TIMESTRUCT now;
     double elapsed, needed;
     int x, y;
 
     if (build->curr_queue) //on sait jamais
     {
-        clock_gettime(CLOCK_MONOTONIC, &now);
+        getTime(&now);
 
         switch (build->unit_queue[0]) //on regarde combien de temps on est censé attendre
         {
@@ -1420,7 +1417,8 @@ void formation(Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY], Build *build)
         break;
         }
 
-        elapsed = (now.tv_sec - build->start.tv_sec) + 1e-9 * (now.tv_nsec - build->start.tv_nsec);
+        elapsed = getSec(&build->start, &now);
+
             //si on a passé le temps de formation de l'unite
         if (elapsed>=needed)
         {
@@ -1464,18 +1462,17 @@ int reparti(Build bat, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], int *x, int 
 //spawn des ennemis autours d'un batiment ennemi (et blindage)
 void spawn_camp(Build *build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
 {
-    struct timespec now;
+    TIMESTRUCT now;
     double elapsed;
     int x, y, a=0, i=0;
 
-    clock_gettime(CLOCK_MONOTONIC, &now);
+    getTime(&now);
 
 
-    elapsed = (now.tv_sec - build->start.tv_sec) + 1e-9 * (now.tv_nsec - build->start.tv_nsec);
+    elapsed = getSec(&build->start, &now);
 
     if (elapsed>=TEMPS_ENNE_B)
     {
-
         while (!a && i<42) //oon regarde max 40 tests random et si ça trouve rien on passe à reparti
         {
             if (i<40)
@@ -1521,16 +1518,16 @@ void spawn_camp(Build *build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
 void spawn_map(Joueur *joueur, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
 {
     int i, j;
-    struct timespec now;
+    TIMESTRUCT now;
     double elapsed;
     int x, y, a=0;
 
-    clock_gettime(CLOCK_MONOTONIC, &now);
+    getTime(&now);
 
 
-    elapsed = (now.tv_sec - joueur->last_spawn.tv_sec) + 1e-9 * (now.tv_nsec - joueur->last_spawn.tv_nsec);
+    elapsed = getSec(&joueur->last_spawn, &now);
 
-    if (elapsed>=BALANCE(TEMPS_ENNE_R) && (now.tv_sec - joueur->debut.tv_sec)>=BALANCE(START_SPAWN))
+    if (elapsed>=BALANCE(TEMPS_ENNE_R) && getSecInt(&joueur->debut, &now)>=BALANCE(START_SPAWN))
     {
                             //on ne teste qu'une fois avec l'aléatoire
         x = rand()%MAPSIZEX;

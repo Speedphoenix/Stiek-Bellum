@@ -85,8 +85,8 @@ void add_unit(Ancre *ancre, int type, int priority, int x, int y, Build *bat)
     }
 
     //on initialise les temps pour l'attaque et l'animation
-    clock_gettime(CLOCK_MONOTONIC, &rep->since_a);
-    clock_gettime(CLOCK_MONOTONIC, &rep->since_w);
+    getTime(&rep->since_a);
+    getTime(&rep->since_w);
 
     ajout_debut(ancre, rep); //on ajoute l'unité à la liste chainée
 }
@@ -284,7 +284,7 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
 {
     Maillon *inter = NULL;
     Build *bat;
-    struct timespec now;
+    TIMESTRUCT now;
     double elapsed;
 
     x = x*((float)joueur->xecran/ECRANX);
@@ -295,7 +295,9 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
 
     if (TEST)
         printf("%d %d\n", DIV(x), DIV(y)); ///POUR TESTER, pour voir sur quelle tuile est la souris
+
     DEB("1-1-0")
+
     if (mouse_b & 2) //dans le cas click droit
     {
         switch (joueur->act) //qu'elle action le joueur etait en train de faire
@@ -430,8 +432,8 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
             }
             else
             {
-                clock_gettime(CLOCK_MONOTONIC, &now);
-                elapsed = (now.tv_sec - joueur->last_clic.tv_sec) + 1e-9 * (now.tv_nsec - joueur->last_clic.tv_nsec);
+                getTime(&now);
+                elapsed = getSec(&joueur->last_clic, &now);
 
                 if (elapsed<=0.5) //si y'a double clic
                 {
@@ -460,7 +462,7 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
         }
 
         if (joueur->clic_prec==1)
-            clock_gettime(CLOCK_MONOTONIC, &joueur->last_clic);
+            getTime(&joueur->last_clic);
 
         joueur->clic_prec = 0; //on garde le fait que le joueur n'a pas cliqué
     }
@@ -627,7 +629,7 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
 
                                 if (bat->curr_queue==0) //si aucune unité n'est en cours de formation
                                 {
-                                    clock_gettime(CLOCK_MONOTONIC, &bat->start); //on initialise le temps de formation
+                                    getTime(&bat->start); //on initialise le temps de formation
                                 }
 
                                 bat->unit_queue[bat->curr_queue] = uni; //on forme l'unité
@@ -772,22 +774,16 @@ int if_dist(int x1, int y1, int x2, int y2, int dist)
 }
 
 //pour voir l'optimisation, motif debug
-void temps_passe(struct timespec *prev)
+void temps_passe(TIMESTRUCT *prev)
 {
     if (HOW_LONG)
     {
-        struct timespec nouveau;
-        int sec, usec, elapsed; //elapsed est en milisec
-        clock_gettime(CLOCK_MONOTONIC, &nouveau);
-
-        //le nombre de secondes passées (est généralement 0)
-        sec = nouveau.tv_sec - prev->tv_sec;
-
-        //le nombre de microsec passées (est négatif quand sec = 1)
-        usec = (int)(nouveau.tv_nsec/1000) - (int)(prev->tv_nsec/1000);
+        TIMESTRUCT nouveau;
+        int elapsed; //elapsed est en milisec
+        getTime(&nouveau);
 
         //le temps passé en milisec
-        elapsed = 1000*sec + (int)(usec/1000);
+        elapsed = getMilisec(prev, &nouveau);
 
         printf("  : %d\n\n", elapsed);
         *prev = nouveau;

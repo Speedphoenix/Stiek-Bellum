@@ -175,7 +175,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, J
             fscanf(fic, "%d\n", &bat->unit_queue[i]);
         }
 
-        clock_gettime(CLOCK_MONOTONIC, &bat->start);
+        getTime(&bat->start);
 
         //on éclaire la zone
         if (bat->side==ALLY)
@@ -208,8 +208,8 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, J
         else
             unite->bat = NULL;
 
-        clock_gettime(CLOCK_MONOTONIC, &unite->since_a); //les temps ne sont pas enregistrés
-        clock_gettime(CLOCK_MONOTONIC, &unite->since_w);
+        getTime(&unite->since_a); //les temps ne sont pas enregistrés
+        getTime(&unite->since_w);
 
         unite->speed*=SCALE;
 
@@ -238,12 +238,12 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, J
     joueur->act = RIEN;
     joueur->clic_prec = 0;
 
-    clock_gettime(CLOCK_MONOTONIC, &joueur->last_spawn);
-    clock_gettime(CLOCK_MONOTONIC, &joueur->last_clic);
+    getTime(&joueur->last_spawn);
+    getTime(&joueur->last_clic);
     DEB("0-18")
     fscanf(fic, "%d\n", &siz);
-    clock_gettime(CLOCK_MONOTONIC, &joueur->debut);
-    joueur->debut.tv_sec -= siz;
+    getTime(&joueur->debut);
+    addSec(&joueur->debut, (-1 * siz));
 
     joueur->pause = 0;
 
@@ -256,7 +256,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, J
 void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Ancre_b ancre_b, Joueur joueur, int num)
 {
     int i, j;
-    struct timespec now;
+    TIMESTRUCT now;
     Maillon *inter1;
     Maillon_b *inter2;
     Unit *unite;
@@ -265,7 +265,7 @@ void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Ancre_b ancre_b, Jou
     char fichier[50];
     int val, counter;
 
-    clock_gettime(CLOCK_MONOTONIC, &now);
+    getTime(&now);
 
     sprintf(fichier, NAME, SAUV, num, MAP); //on assemble le nom du fichier
 
@@ -368,7 +368,7 @@ void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Ancre_b ancre_b, Jou
     fprintf(fic, "%d %d\n", joueur.level, joueur.map_num);
     //on ne met pas prevwheel
     //on ne met pas non plus les valeurs à petite durée d'utilisation
-    fprintf(fic, "%d\n",(int)(now.tv_sec - joueur.debut.tv_sec));
+    fprintf(fic, "%d\n", getSecInt(&joueur.debut, &now));
 
     fprintf(fic, "\n");
 
@@ -414,9 +414,9 @@ void reset(Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][
     joueur->chang_taill = 1;
 
 
-    clock_gettime(CLOCK_MONOTONIC, &joueur->debut);
-    clock_gettime(CLOCK_MONOTONIC, &joueur->last_clic);
-    clock_gettime(CLOCK_MONOTONIC, &joueur->last_spawn);
+    getTime(&joueur->debut);
+    getTime(&joueur->last_clic);
+    getTime(&joueur->last_spawn);
 
     libere(&joueur->selection, 0);
     libere(ancre, 1);
