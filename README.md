@@ -3,7 +3,9 @@
 ---
 <!---
 ![ ](/Res/Menu.bmp?raw=true) 
---- -->
+-->
+![ ](/Res/Sword_in_rock.png?raw=true)
+---
 #### EN
 
 An RTS type game done as an academic project in the first year of university  
