@@ -4,8 +4,11 @@
     ce fichier contient les sous programmes appellés à chaque tour de boucle de jeu pour l'actualisation
 */
 
+using namespace std;
+
+///L'interieur du commentaire... argh
 ////déplace l'unité en fonction de la destination
-//void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
+//void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, Unit *unite)
 //{
 //    Unit *enemi=NULL;
 //    Tile tuile;
@@ -470,34 +473,31 @@
 
 
 //fonction d'actualisation, apellée à chaque tour de boucle
-void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur)
+void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, list<Build *>& ancre_b, Joueur& joueur)
 {
     Maillon *inter1, *inter2;
-    Maillon_b *inter1_b, *inter2_b;
     int bois, pierre, nend, if_lose = 1; //if_lose sert pour verifier les conditions de défaite
-    Unit *unite;
     Build *build;
 
-    joueur->nend_e = 0;
+    list<Build *>::iterator iter1_b;
+
+    joueur.nend_e = 0;
 
     nend = 0;
-    inter1_b = ancre_b->debut;
 
     DEB("2-0")
 
-    while (inter1_b!=NULL) //on passe par chaque batiment
+    for (iter1_b = ancre_b.begin();iter1_b!=ancre_b.end();iter1_b++)
     {
-        inter2_b = inter1_b->next;
-
-        build = inter1_b->batiment;
+        build = *iter1_b;
 
         DEB("2-1")
 
         if (build->hp<=0)
         {
             DEB("2-2")
-            destroy_build(ancre_b, inter1_b, carte);
-            joueur->change = 1;
+            destroy_build(ancre_b, iter1_b, carte);
+            joueur.change = 1;
         }
         else
         {
@@ -505,7 +505,7 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Joue
             if (build->curr_queue) //s'il y a des unités en formation dans ce batiment
             {
                 DEB("2-4")
-                formation(ancre, carte, build);
+                formation(ancre, carte, *build);
             }
             DEB("2-5")
             if (build->side==ENEMY)
@@ -514,7 +514,7 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Joue
                 nend++; //le jeu n'est pas fini
 
                 if (build->statione<build->cap) //si il y a de la place pour spawn des ennemis autours
-                    spawn_camp(build, ancre, carte);
+                    spawn_camp(*build, ancre, carte);
             }
             else //si c'est un batiment allié
             {
@@ -539,17 +539,16 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Joue
                     if (build->curr_queue)
                         if_lose = 0;
 
-                    if (bois<=joueur->bois && pierre<=joueur->marbre) //si le joueur est en position pour créer des unités
+                    if (bois<=joueur.bois && pierre<=joueur.marbre) //si le joueur est en position pour créer des unités
                         if_lose = 0;
                 }
             }
             DEB("2-8")
         }
 
-        inter1_b = inter2_b;
     }
 
-    joueur->nend_b = nend;
+    joueur.nend_b = nend;
 
     DEB("2-10")
 
@@ -561,38 +560,39 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Joue
         inter2 = inter1->next;
 
         //on regarde une unité
-        unite = inter1->unite;
+        Unit& unite = *inter1->unite;
 
-        if (unite->side==ALLY)
+
+        if (unite.side==ALLY)
             if_lose = 0;
 
         //on met l'unité dans la bonne direction
-        if (unite->x==unite->xdest)
-            unite->direction = RIGHT;
-        else if (unite->xdest<(unite->x + unite->cote/2))
-            unite->direction = LEFT;
+        if (unite.x==unite.xdest)
+            unite.direction = RIGHT;
+        else if (unite.xdest<(unite.x + unite.cote/2))
+            unite.direction = LEFT;
         else
-            unite->direction = RIGHT;
+            unite.direction = RIGHT;
 
         //on tue les unités qui ont décédé
-        if(unite->hp<=0)
-            unite->state = DEAD;
+        if(unite.hp<=0)
+            unite.state = DEAD;
 
-        if (unite->state==DEAD)
+        if (unite.state==DEAD)
         {
             DEB("2-12")
-            if (unite->side==ENEMY)
+            if (unite.side==ENEMY)
             {
-                if (unite->predator==ALLY)
-                    joueur->viande++;
+                if (unite.predator==ALLY)
+                    joueur.viande++;
 
-                if (unite->bat) //on libere de l'espace de stationnement si l'unité est associée à un batiment
+                if (unite.bat) //on libere de l'espace de stationnement si l'unité est associée à un batiment
                 {
-                    if (unite->bat->hp>0)
+                    if (unite.bat->hp>0)
                     {
-                        unite->bat->statione--;
+                        unite.bat->statione--;
                         //on remet à zero le compeur pour ne pas que l'unite suivante arrive tout de suite, et pour que le camp ne spaw pas s'il est en combat
-                        getTime(&unite->bat->start);
+                        getTime(unite.bat->start);
                     }
                 }
             }
@@ -604,11 +604,11 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Joue
             DEB("2-14")
             act_unit(unite, *ancre, carte, joueur);
 
-            if (unite->side==ENEMY)
+            if (unite.side==ENEMY)
             {
-                joueur->nend_e++;
+                joueur.nend_e++;
                 DEB("2-51")
-                automat(*ancre, *ancre_b, carte, *joueur, unite);
+                automat(*ancre, ancre_b, carte, joueur, unite);
                 DEB("2-52")
             }
         }
@@ -623,54 +623,54 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Joue
     DEB("2-61")
 
     if (if_lose)
-        joueur->nend_b = -1;
+        joueur.nend_b = -1;
 }
 
 //l'actualisation d'une seule unité
-void act_unit(Unit *unite, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur *joueur)
+void act_unit(Unit& unite, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur)
 {
-    switch (unite->state)
+    switch (unite.state)
     {
         case MOVING: //si l'unité est en mouvement OU inactive
         DEB("2-21")
-        if (unite->side==ALLY) //on eclaire la zone autours
-            eclaire(carte, unite->x+unite->cote/2, unite->y+unite->cote/2, unite->vision);
+        if (unite.side==ALLY) //on eclaire la zone autours
+            eclaire(carte, unite.x+unite.cote/2, unite.y+unite.cote/2, unite.vision);
 
-        unite->prec = MOVING; //on met la bonne animation
+        unite.prec = MOVING; //on met la bonne animation
 
-        if (unite->x!=unite->xdest || unite->y!=unite->ydest) //si l'unité est en mouvement
+        if (unite.x!=unite.xdest || unite.y!=unite.ydest) //si l'unité est en mouvement
         {
             DEB("2-22")
             //sous-prog de déplacement
             move_call(carte, ancre, unite);
 
             //s'il faut passer à l'image suivante en termes d'animation
-            if (if_elapsed(unite, ANIMATION) && unite->state==MOVING) //si on vient de changer le type d'action on veut pas passer à l'image suivante
+            if (if_elapsed(unite, ANIMATION) && unite.state==MOVING) //si on vient de changer le type d'action on veut pas passer à l'image suivante
             {
-                unite->frame++;
-                if (unite->frame==NUMFRAMES)
-                    unite->frame = 0;
+                unite.frame++;
+                if (unite.frame==NUMFRAMES)
+                    unite.frame = 0;
             }
 
         }
         else //si l'unité est immobile
         {
             DEB("2-23")
-            unite->frame = 0;
+            unite.frame = 0;
 
-            if (unite->side==ENEMY && unite->bat) //si c'est un garde on ne lui donne pas de distractions
-                unite->priority = GUARD;
+            if (unite.side==ENEMY && unite.bat) //si c'est un garde on ne lui donne pas de distractions
+                unite.priority = GUARD;
             else
-                unite->priority = STAND;
+                unite.priority = STAND;
 
-            unite->prec = MOVING;
+            unite.prec = MOVING;
 
         }
     break;
 
         case ATTACK: //si l'unité est en train d'attaquer
         DEB("2-30")
-        if (unite->frame==0) //si l'unité n'est pas au milieu d'une attaque
+        if (unite.frame==0) //si l'unité n'est pas au milieu d'une attaque
         {
             DEB("2-31")
             if (if_elapsed(unite, WORK)) //si il est temps d'attaquer à nouveau
@@ -678,7 +678,7 @@ void act_unit(Unit *unite, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur *
                 DEB("2-32")
                 attack(ancre, carte, unite); //on attaque
 
-                unite->frame++; //on passe à l'image suivante
+                unite.frame++; //on passe à l'image suivante
             }
         }
         else
@@ -687,19 +687,19 @@ void act_unit(Unit *unite, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur *
             if (if_elapsed(unite, ANIMATION)) //s'il faut passer à la prochaine image de l'animation
             {
                 DEB("2-34")
-                unite->frame++;
-                if (unite->frame==NUMFRAMES)
-                    unite->frame = 0;
+                unite.frame++;
+                if (unite.frame==NUMFRAMES)
+                    unite.frame = 0;
             }
         }
     break;
 
         case MINE:
         DEB("2-40")
-        if (unite->prod) //si c'est bien une unité qui peut produire
+        if (unite.prod) //si c'est bien une unité qui peut produire
         {
             DEB("2-41")
-            if (unite->frame==0)
+            if (unite.frame==0)
             {
                 DEB("2-42")
                 if (if_elapsed(unite, WORK)) //s'il faut extraire à nouveau
@@ -707,7 +707,7 @@ void act_unit(Unit *unite, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur *
                     DEB("2-43")
                     mine(carte, unite, joueur);
 
-                    unite->frame++;
+                    unite.frame++;
                 }
             }
             else
@@ -716,36 +716,37 @@ void act_unit(Unit *unite, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur *
                 if (if_elapsed(unite, ANIMATION))
                 {
                     DEB("2-45")
-                    unite->frame++;
-                    if (unite->frame==NUMFRAMES)
-                        unite->frame = 0;
+                    unite.frame++;
+                    if (unite.frame==NUMFRAMES)
+                        unite.frame = 0;
                 }
             }
         }
         else
-            unite->state = MOVING;
+            unite.state = MOVING;
     break;
 
         default:
     break;
     }
 
-    unite->predator = 0;
+    unite.predator = 0;
     DEB("2-50")
 }
 
 //déplace l'unité en fonction de la destination
-void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
+void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, Unit& unite)
 {
     Unit *enemi=NULL;
     Tile tuile;
 
-    int *x = &unite->x, *y = &unite->y; //pour ne pas à réécrire trop
-    int *xdest = &unite->xdest, *ydest = &unite->ydest; //pareil
+    ///FAIRE DES REFERENCES
+    int *x = &unite.x, *y = &unite.y; //pour ne pas à réécrire trop
+    int *xdest = &unite.xdest, *ydest = &unite.ydest; //pareil
     int xtile, ytile; //pareil, la tuile sur laquelle est l'unité
 
-    int speed = unite->speed; //pour ne pas faire des lignes trop longues
-    int cote = unite->cote;
+    int speed = unite.speed; //pour ne pas faire des lignes trop longues
+    int cote = unite.cote;
 
     int dx=0, dy=0; //la direction dans laquelle aller (vecteur déplacement)
     int xposs=0, yposs=0; //les poss sont des booleens pour la possibilité de dféplacement selon un axe
@@ -764,57 +765,57 @@ void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
         *ydest = 0;
 
 
-    enemi = trouve(ancre, *xdest, *ydest, NULL, unite->side); //pour voir s'il y a un ennemi sur la tuile d'arrivée
+    enemi = trouve(ancre, *xdest, *ydest, NULL, unite.side); //pour voir s'il y a un ennemi sur la tuile d'arrivée
 
     tuile = carte[DIV(*xdest)][DIV(*ydest)]; //la tuile à destination
 
     //s'il faut arreter le déplacementpour faire autre chose
-    if (if_dist(*x + cote/2, *y + cote/2, *xdest, *ydest, unite->range) &&      //si la destination est dans la portée d'attaque/extraction
-       ((enemi!=NULL && enemi->side!=unite->side) ||                            //si il y a un ennemi à la destination
-       (tuile.erige && tuile.erige->side!=unite->side) ||                       //si il y a un batiment ennemi
-       (tuile.erige && (tuile.erige->side==unite->side && tuile.erige->hp!=tuile.erige->hp_max)) || //si il y a un batiment allié à réparer/construire
-       (tuile.res && unite->prod)))                                             //si il y a de la ressource à extraire
+    if (if_dist(*x + cote/2, *y + cote/2, *xdest, *ydest, unite.range) &&      //si la destination est dans la portée d'attaque/extraction
+       ((enemi!=NULL && enemi->side!=unite.side) ||                            //si il y a un ennemi à la destination
+       (tuile.erige && tuile.erige->side!=unite.side) ||                       //si il y a un batiment ennemi
+       (tuile.erige && (tuile.erige->side==unite.side && tuile.erige->hp!=tuile.erige->hp_max)) || //si il y a un batiment allié à réparer/construire
+       (tuile.res && unite.prod)))                                             //si il y a de la ressource à extraire
     {
-        unite->frame = 0;
+        unite.frame = 0;
 
 
-        if (unite->prod && (tuile.res || (tuile.erige && tuile.erige->hp<tuile.erige->hp_max && tuile.erige->side==unite->side)))//production de res ou construction
+        if (unite.prod && (tuile.res || (tuile.erige && tuile.erige->hp<tuile.erige->hp_max && tuile.erige->side==unite.side)))//production de res ou construction
         {
-            unite->state = MINE;
+            unite.state = MINE;
 
             switch (tuile.type) //on met la variable de précision (pour l'animation)
             {
                 default:
                 case TREE:
-                unite->prec = CHOP;
+                unite.prec = CHOP;
             break;
 
                 case BUILDING:
                 case ROCK:
-                unite->prec = MINE;
+                unite.prec = MINE;
             break;
             }
         }
         else
         {
-            unite->state = ATTACK;
-            unite->prec = ATTACK;
+            unite.state = ATTACK;
+            unite.prec = ATTACK;
         }
     }
     else //s'il faut se déplacer
     {
-        if (unite->changepath)
+        if (unite.changepath)
         {
             path(carte, ancre, unite);
         }
 
-        xtile = DIV(unite->x + cote/2);
-        ytile = DIV(unite->y + cote/2);
+        xtile = DIV(unite.x + cote/2);
+        ytile = DIV(unite.y + cote/2);
 
         //les valeurs de déplacement
-        if (xtile!=unite->xpath) //s'il faut se déplacer en abscisse
+        if (xtile!=unite.xpath) //s'il faut se déplacer en abscisse
         {
-            dx = speed * (xtile<unite->xpath?1:-1);
+            dx = speed * (xtile<unite.xpath?1:-1);
         }
         else if (DIV(*xdest)==xtile && *x+cote/2!=*xdest)
         {
@@ -826,9 +827,9 @@ void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
         }
 
 
-        if (ytile!=unite->ypath)
+        if (ytile!=unite.ypath)
         {
-            dy = speed * (ytile<unite->ypath?1:-1);
+            dy = speed * (ytile<unite.ypath?1:-1);
         }
         else if (DIV(*ydest)==ytile && *y+cote/2!=*ydest) //s'il faut se déplacer en ordonnée
         {
@@ -842,20 +843,20 @@ void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
 
         if (dx &&
            !(carte[DIV(*x+dx+(cote/2))][DIV(*y+(cote/2))].block) && //si le déplacement en abscisse est possible
-           !trouve(ancre, *x+dx+(cote/2), *y+(cote/2), unite, NEUTR))
+           !trouve(ancre, *x+dx+(cote/2), *y+(cote/2), &unite, NEUTR))
             xposs = 1;
 
 
         if (dy &&
            !(carte[DIV(*x+(cote/2))][DIV(*y+dy+(cote/2))].block) && //si le déplacement en ordonnée est possible
-           !trouve(ancre, *x+(cote/2), *y+dy+(cote/2), unite, NEUTR))
+           !trouve(ancre, *x+(cote/2), *y+dy+(cote/2), &unite, NEUTR))
             yposs = 1;
 
 
 
         if ((xposs || yposs) &&
            !(carte[DIV(*x+dx+cote/2)][DIV(*y+dy+cote/2)].block) && //si le déplacement en diagonale est possible
-           !trouve(ancre, *x+dx+(cote/2), *y+dy+(cote/2), unite, NEUTR))
+           !trouve(ancre, *x+dx+(cote/2), *y+dy+(cote/2), &unite, NEUTR))
         {
             if ((pow(dx,2)+pow(dy,2)) > pow(speed, 2))
             {
@@ -871,47 +872,47 @@ void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
             *y += dy;
 
             if (dx>0) //avec le pathfind la direction du mouvement n'est pas toujours décidée par la destination
-                unite->direction = RIGHT;
+                unite.direction = RIGHT;
             else
-                unite->direction = LEFT;
+                unite.direction = LEFT;
         }
         else if (xposs)
         {
             *x += dx;
 
             if (dx>0) //avec le pathfind la direction du mouvement n'est pas toujours décidée par la destination
-                unite->direction = RIGHT;
+                unite.direction = RIGHT;
             else
-                unite->direction = LEFT;
+                unite.direction = LEFT;
         }
         else if (yposs)
         {
             *y += dy;
 
             //avec le pathfind la direction du mouvement n'est pas toujours décidée par la destination
-            unite->direction = RIGHT;
+            unite.direction = RIGHT;
         }
         else //on arrete le mouvement
         {
-            if (unite->side==ENEMY && unite->bat) //si c'est un garde on ne lui donne pas de distractions
-                unite->priority = GUARD;
+            if (unite.side==ENEMY && unite.bat) //si c'est un garde on ne lui donne pas de distractions
+                unite.priority = GUARD;
             else
-                unite->priority = STAND;
+                unite.priority = STAND;
 
             *xdest = *x;
             *ydest = *y;
-            unite->frame = 0;
+            unite.frame = 0;
         }
 
         if (DIV(*x)!=xtile || DIV(*y)!=ytile)
         {
-            unite->changepath = 1;
+            unite.changepath = 1;
         }
     }
 }
 
 //décide du chemin que l'unité doit prendre
-void path(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
+void path(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, Unit& unite)
 {
     int i, j, k;
 
@@ -921,24 +922,24 @@ void path(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
     int a = 0, b, g, h;
     int xf, yf, xs, ys, x, y;
 
-    xf = DIV(unite->xdest);
-    yf = DIV(unite->ydest);
-    xs = DIV(unite->x + unite->cote/2);
-    ys = DIV(unite->y + unite->cote/2);
+    xf = DIV(unite.xdest);
+    yf = DIV(unite.ydest);
+    xs = DIV(unite.x + unite.cote/2);
+    ys = DIV(unite.y + unite.cote/2);
 
     //printf("%d %d %d %d", xs, ys, xf, yf);
 
     if (ABS(xs-xf)<=1 && ABS(ys-yf)<=1)
     {
-        unite->xpath = xf;
-        unite->ypath = yf;
+        unite.xpath = xf;
+        unite.ypath = yf;
     }
     else
     {
         step = (Step *) malloc(sizeof(Step));
 
-        step->x = DIV(unite->x + unite->cote/2);
-        step->y = DIV(unite->y + unite->cote/2);
+        step->x = DIV(unite.x + unite.cote/2);
+        step->y = DIV(unite.y + unite.cote/2);
         step->g = 0;
         step->h = 1.4*MIN(ABS(xs-xf), ABS(ys-yf)) + ABS((xs-xf) - ABS(ys-yf));
         step->total = step->g + step->h;
@@ -962,17 +963,17 @@ void path(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
                 {
                     b = 1; //b est à 1 s'il faut créer un nouveau pas pour cette case
                     if ((i || j) && x+i<MAPSIZEX && x+i>=0 && y+j<MAPSIZEY && y+j>=0 && //si la case est accessible
-                    !carte[x+i][y+j].block/* && !trouve(ancre, (x+i)*COTE+COTE/2, (y+j)*COTE+COTE/2, unite, NEUTR)*/)
+                    !carte[x+i][y+j].block/* && !trouve(ancre, (x+i)*COTE+COTE/2, (y+j)*COTE+COTE/2, &unite, NEUTR)*/)
                     {
                                                             //si on est en diagonale il faut check les adjacents
-                        if (!((i && j) && ((carte[x+i][y].block/* || trouve(ancre, (x+i)*COTE+COTE/2, y*COTE+COTE/2, unite, NEUTR)*/) ||
-                            (carte[x][y+j].block/* || trouve(ancre, x*COTE+COTE/2, (y+j)*COTE+COTE/2, unite, NEUTR)*/))))
+                        if (!((i && j) && ((carte[x+i][y].block/* || trouve(ancre, (x+i)*COTE+COTE/2, y*COTE+COTE/2, &unite, NEUTR)*/) ||
+                            (carte[x][y+j].block/* || trouve(ancre, x*COTE+COTE/2, (y+j)*COTE+COTE/2, &unite, NEUTR)*/))))
                         {//printf("0\n");
 
                             g = step->g + ((i && j)?1.4:1.0);
                             h = 1.4*MIN(ABS((x+i)-xf), ABS((y+j)-yf)) + ABS(ABS((x+i)-xf) - ABS((y+j)-yf));
 
-                            if ((1.4*MIN(ABS((x+i)-xs), ABS((y+j)-ys)) + ABS(ABS((x+i)-xs) - ABS((y+j)-ys)))>2*unite->vision)
+                            if ((1.4*MIN(ABS((x+i)-xs), ABS((y+j)-ys)) + ABS(ABS((x+i)-xs) - ABS((y+j)-ys)))>2*unite.vision)
                             {//printf("1\n");
                                 step->ending = 1;
                                 a = 1;
@@ -1133,8 +1134,8 @@ void path(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
             }
         }
 
-        unite->xpath = nouv->x;
-        unite->ypath = nouv->y;
+        unite.xpath = nouv->x;
+        unite.ypath = nouv->y;
 
 
         //liberer les deux listes
@@ -1158,107 +1159,107 @@ void path(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
 }
 
 //fait attaquer l'unité
-void attack(Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Unit *unite)
+void attack(Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Unit& unite)
 {
     Unit *victime;
-    Tile tuile = carte[DIV(unite->xdest)][DIV(unite->ydest)];
+    Tile tuile = carte[DIV(unite.xdest)][DIV(unite.ydest)];
 
 
     //si on est dans la portée d'attaque
-    if (if_dist(unite->x + unite->cote/2, unite->y + unite->cote/2, unite->xdest, unite->ydest, unite->range))
+    if (if_dist(unite.x + unite.cote/2, unite.y + unite.cote/2, unite.xdest, unite.ydest, unite.range))
     {
-        victime = trouve(ancre, unite->xdest, unite->ydest, NULL, unite->side);
+        victime = trouve(ancre, unite.xdest, unite.ydest, NULL, unite.side);
 
         if (victime!=NULL) //s'il y a à attaquer
         {
             if (victime->priority<TAUNT) //si la victime doit se sentir agressée
             {
-                victime->xdest = unite->x + unite->cote/2; //on dit à l'unité d'ataquer aussi
-                victime->ydest = unite->y + unite->cote/2;
+                victime->xdest = unite.x + unite.cote/2; //on dit à l'unité d'ataquer aussi
+                victime->ydest = unite.y + unite.cote/2;
                 victime->state = MOVING;
                 victime->prec = MOVING;
                 victime->priority = TAUNT;
                 victime->changepath = 1;
             }
 
-            victime->hp -= unite->damage;
-            victime->predator = unite->side;
+            victime->hp -= unite.damage;
+            victime->predator = unite.side;
         }
-        else if(tuile.erige!=NULL && tuile.erige->side!=unite->side) //s'om y a un batiment ennemi
+        else if(tuile.erige!=NULL && tuile.erige->side!=unite.side) //s'om y a un batiment ennemi
         {
-            tuile.erige->hp -= unite->damage;
+            tuile.erige->hp -= unite.damage;
         }
         else
         {
-            unite->state = MOVING;
-            unite->prec = MOVING;
+            unite.state = MOVING;
+            unite.prec = MOVING;
 
-            if (unite->side==ENEMY && unite->bat) //si c'est un garde on ne lui donne pas de distractions
+            if (unite.side==ENEMY && unite.bat) //si c'est un garde on ne lui donne pas de distractions
             {
-                unite->xdest = unite->x;
-                unite->ydest = unite->y;
-                unite->priority = GUARD;
+                unite.xdest = unite.x;
+                unite.ydest = unite.y;
+                unite.priority = GUARD;
             }
             else
             {
-                unite->priority = AUTO;
-                unite->changepath = 1;
+                unite.priority = AUTO;
+                unite.changepath = 1;
             }
 
         }
     }
     else //si on est pas dans la portée d'attaque
     {
-        unite->state = MOVING;
-        unite->prec = MOVING;
+        unite.state = MOVING;
+        unite.prec = MOVING;
 
-        if (unite->side==ENEMY && unite->bat) //si c'est un garde on ne lui donne pas de distractions
+        if (unite.side==ENEMY && unite.bat) //si c'est un garde on ne lui donne pas de distractions
         {
-            unite->xdest = unite->x;
-            unite->ydest = unite->y;
-            unite->priority = GUARD;
+            unite.xdest = unite.x;
+            unite.ydest = unite.y;
+            unite.priority = GUARD;
         }
         else
         {
-            unite->priority = AUTO;
-            unite->changepath = 1;
+            unite.priority = AUTO;
+            unite.changepath = 1;
         }
     }
 }
 
 //fait extraire des ressources par l'unité
-void mine(Tile carte[MAPSIZEX][MAPSIZEY], Unit *unite, Joueur *joueur)
+void mine(Tile carte[MAPSIZEX][MAPSIZEY], Unit& unite, Joueur& joueur)
 {
     int x, y; //les coordonnées de la tuile à extraire
 
     //si on est dans la portée d'extraction
-    if (if_dist(unite->x + unite->cote/2, unite->y + unite->cote/2, unite->xdest, unite->ydest, unite->range))
+    if (if_dist(unite.x + unite.cote/2, unite.y + unite.cote/2, unite.xdest, unite.ydest, unite.range))
     {
 
-        x = DIV(unite->xdest);
-        y = DIV(unite->ydest);
+        x = DIV(unite.xdest);
+        y = DIV(unite.ydest);
 
         if (carte[x][y].res) //s'il y a un nombre non nul de ressources à cet endroit
         {
-            if (((carte[x][y].type==TREE)?joueur->bois:joueur->marbre)<MAXRES)
+            if (((carte[x][y].type==TREE)?joueur.bois:joueur.marbre)<MAXRES)
             {
-                unite->prec = (carte[x][y].type==TREE)?CHOP:MINE; //le type d'animation
-                carte[x][y].res -= unite->damage; //on diminue la quantité de ressources à destination
+                unite.prec = (carte[x][y].type==TREE)?CHOP:MINE; //le type d'animation
+                carte[x][y].res -= unite.damage; //on diminue la quantité de ressources à destination
 
                 switch (carte[x][y].type)
                 {
                     case TREE:
-                    joueur->bois += unite->damage;
+                    joueur.bois += unite.damage;
 
                     if (carte[x][y].res<0)              //si on a pris plus que la quantité de ressources restantes
-                        joueur->bois+=carte[x][y].res;  //on enleve le surplus
+                        joueur.bois+=carte[x][y].res;  //on enleve le surplus
                 break;
 
                     case ROCK:
-                    joueur->marbre += unite->damage;
+                    joueur.marbre += unite.damage;
 
                     if (carte[x][y].res<0)              //si on a pris plus que la quantité de ressources restantes
-                        joueur->marbre+=carte[x][y].res;//on enleve le surplus
+                        joueur.marbre+=carte[x][y].res;//on enleve le surplus
                 break;
 
                     default:
@@ -1268,30 +1269,30 @@ void mine(Tile carte[MAPSIZEX][MAPSIZEY], Unit *unite, Joueur *joueur)
                 if (carte[x][y].res<=0) //on enleve l'arbre / rocher s'il n'y a pllus de ressourcces
                 {
                     enlev(carte, x, y);
-                    joueur->change = 1;
+                    joueur.change = 1;
                     if (!next_res(unite, carte)) //si on a pas trouvé de prochaine ressource à extraire
                     {
-                        unite->xdest = unite->x;
-                        unite->ydest = unite->y;
-                        unite->state = MOVING;
-                        unite->prec = MOVING;
-                        unite->priority = STAND;
+                        unite.xdest = unite.x;
+                        unite.ydest = unite.y;
+                        unite.state = MOVING;
+                        unite.prec = MOVING;
+                        unite.priority = STAND;
                     }
                 }
             }
             else
             {
-                unite->xdest = unite->x;
-                unite->ydest = unite->y;
-                unite->state = MOVING;
-                unite->prec = MOVING;
-                unite->priority = STAND;
+                unite.xdest = unite.x;
+                unite.ydest = unite.y;
+                unite.state = MOVING;
+                unite.prec = MOVING;
+                unite.priority = STAND;
             }
 
         }
-        else if (carte[x][y].erige && (carte[x][y].erige->side==unite->side && carte[x][y].erige->hp<carte[x][y].erige->hp_max)) //s'il faut réparer/construire un batiment
+        else if (carte[x][y].erige && (carte[x][y].erige->side==unite.side && carte[x][y].erige->hp<carte[x][y].erige->hp_max)) //s'il faut réparer/construire un batiment
         {
-            carte[x][y].erige->hp += unite->damage; //on ajoute les points de vie au batiment
+            carte[x][y].erige->hp += unite.damage; //on ajoute les points de vie au batiment
 
             if (carte[x][y].erige->hp>carte[x][y].erige->hp_max) //on finalise la construction du batiment
             {
@@ -1302,20 +1303,20 @@ void mine(Tile carte[MAPSIZEX][MAPSIZEY], Unit *unite, Joueur *joueur)
         {
             if (!next_res(unite, carte)) //si on a pas trouvé de prochaine ressource à extraire
             {
-                unite->xdest = unite->x;
-                unite->ydest = unite->y;
-                unite->state = MOVING;
-                unite->prec = MOVING;
-                unite->priority = STAND;
+                unite.xdest = unite.x;
+                unite.ydest = unite.y;
+                unite.state = MOVING;
+                unite.prec = MOVING;
+                unite.priority = STAND;
             }
         }
     }
     else //si y'a pas la portée
     {
-        unite->state = MOVING;
-        unite->prec = MOVING;
-        unite->priority = AUTO;
-        unite->changepath = 1;
+        unite.state = MOVING;
+        unite.prec = MOVING;
+        unite.priority = AUTO;
+        unite.changepath = 1;
     }
 }
 
@@ -1363,12 +1364,12 @@ void enlev(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
 }
 
 //renvoie une booléenne: si il faut passer ou non à l'image suivante et faire avancer l'unité
-int if_elapsed(Unit *unite, int type)
+int if_elapsed(Unit& unite, int type)
 {
     TIMESTRUCT inter;
     double pas, elapsed;
 
-    getTime(&inter);
+    getTime(inter);
     //la précision en nanosecodes est inutile, des microsecondes auraient suffi (avec struct timeval au lieu de timespec)
 
     switch (type)
@@ -1376,11 +1377,11 @@ int if_elapsed(Unit *unite, int type)
         default:
         case ANIMATION:
         pas = DELAY;
-        elapsed = getSec(&unite->since_a, &inter);
+        elapsed = getSec(unite.since_a, inter);
     break;
         case WORK:
-        pas = unite->delay;
-        elapsed = getSec(&unite->since_w, &inter);
+        pas = unite.delay;
+        elapsed = getSec(unite.since_w, inter);
     break;
     }
 
@@ -1391,10 +1392,10 @@ int if_elapsed(Unit *unite, int type)
         {
             default:
             case ANIMATION:
-            unite->since_a = inter;
+            unite.since_a = inter;
         break;
             case WORK:
-            unite->since_w = inter;
+            unite.since_w = inter;
         break;
         }
         return 1;
@@ -1404,18 +1405,18 @@ int if_elapsed(Unit *unite, int type)
 }
 
 //forme regarde le batiment et forme une unité s'il y en a une à former
-void formation(Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY], Build *build)
+void formation(Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY], Build& build)
 {
     int i;
     TIMESTRUCT now;
     double elapsed, needed;
     int x, y;
 
-    if (build->curr_queue) //on sait jamais
+    if (build.curr_queue) //on sait jamais
     {
-        getTime(&now);
+        getTime(now);
 
-        switch (build->unit_queue[0]) //on regarde combien de temps on est censé attendre
+        switch (build.unit_queue[0]) //on regarde combien de temps on est censé attendre
         {
             default:
             case PEASANT:
@@ -1427,27 +1428,27 @@ void formation(Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY], Build *build)
         break;
         }
 
-        elapsed = getSec(&build->start, &now);
+        elapsed = getSec(build.start, now);
 
             //si on a passé le temps de formation de l'unite
         if (elapsed>=needed)
         {
-            if (reparti(*build, *ancre, carte, &x, &y))
+            if (reparti(build, *ancre, carte, &x, &y))
             {
-                add_unit(ancre, build->unit_queue[0], STAND, x, y, build); //le batiment pointé ne sert pas vraiment mais bon...
-                build->curr_queue--; //on enleve l'unité de la queue de formation
-                for (i=0;i<build->curr_queue;i++)
+                add_unit(ancre, build.unit_queue[0], STAND, x, y, &build); //le batiment pointé ne sert pas vraiment mais bon...
+                build.curr_queue--; //on enleve l'unité de la queue de formation
+                for (i=0;i<build.curr_queue;i++)
                 {                                       //on décale la queue de un cran
-                    build->unit_queue[i] = build->unit_queue[i+1];
+                    build.unit_queue[i] = build.unit_queue[i+1];
                 }
-                build->start = now; //on remet à zero le temps de formation
+                build.start = now; //on remet à zero le temps de formation
             }
         }
     }
 }
 
 //repartit l'unité autours du batiment là où y'a de la place
-int reparti(Build bat, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], int *x, int *y)
+int reparti(Build& bat, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int *x, int *y)
 {
     int i, j;
     int rep = 0;
@@ -1470,16 +1471,16 @@ int reparti(Build bat, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], int *x, int 
 }
 
 //spawn des ennemis autours d'un batiment ennemi (et blindage)
-void spawn_camp(Build *build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
+void spawn_camp(Build& build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
 {
     TIMESTRUCT now;
     double elapsed;
     int x, y, a=0, i=0;
 
-    getTime(&now);
+    getTime(now);
 
 
-    elapsed = getSec(&build->start, &now);
+    elapsed = getSec(build.start, now);
 
     if (elapsed>=TEMPS_ENNE_B)
     {
@@ -1487,8 +1488,8 @@ void spawn_camp(Build *build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
         {
             if (i<40)
             {
-                x = (rand()%(2*SPAWNRANGE + build->w)) + build->x*COTE - SPAWNRANGE;
-                y = (rand()%(2*SPAWNRANGE + build->h)) + build->y*COTE - SPAWNRANGE; //randomize les coordonnées
+                x = (rand()%(2*SPAWNRANGE + build.w)) + build.x*COTE - SPAWNRANGE;
+                y = (rand()%(2*SPAWNRANGE + build.h)) + build.y*COTE - SPAWNRANGE; //randomize les coordonnées
 
                 if (x<0) //ptit blindage
                     x=0;
@@ -1508,36 +1509,36 @@ void spawn_camp(Build *build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
                 }
             }
             else //si on a eu aucun succes avec les RNG
-                a = reparti(*build, *ancre, carte, &x, &y);
+                a = reparti(build, *ancre, carte, &x, &y);
         }
 
 
         if (a) //si ça a marché on ajoute l'unité
         {
-            add_unit(ancre, ENEMY, GUARD, x, y, build);
+            add_unit(ancre, ENEMY, GUARD, x, y, &build);
 
-            build->statione++; //le batiment a moins de place maintenant
+            build.statione++; //le batiment a moins de place maintenant
 
-            build->start = now; //on remet à zero le compteur de la prochaine unité
+            build.start = now; //on remet à zero le compteur de la prochaine unité
         }
     }
 
 }
 
 //spawn des ennemis aléatoirement sur la map
-void spawn_map(Joueur *joueur, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
+void spawn_map(Joueur& joueur, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
 {
     int i, j;
     TIMESTRUCT now;
     double elapsed;
     int x, y, a=0;
 
-    getTime(&now);
+    getTime(now);
 
 
-    elapsed = getSec(&joueur->last_spawn, &now);
+    elapsed = getSec(joueur.last_spawn, now);
 
-    if (elapsed>=BALANCE(TEMPS_ENNE_R) && getSecInt(&joueur->debut, &now)>=BALANCE(START_SPAWN))
+    if (elapsed>=BALANCE(TEMPS_ENNE_R) && getSecInt(joueur.debut, now)>=BALANCE(START_SPAWN))
     {
                             //on ne teste qu'une fois avec l'aléatoire
         x = rand()%MAPSIZEX;
@@ -1566,26 +1567,26 @@ void spawn_map(Joueur *joueur, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
         {
             add_unit(ancre, ENEMY, STAND, x, y, NULL);
 
-            joueur->last_spawn = now; //on remet à zero le timer du spawn
+            joueur.last_spawn = now; //on remet à zero le timer du spawn
         }
     }
 
 }
 
 //dirige le paysant vers la prochaine ressource. renvoie si ça a marché ou pas
-int next_res(Unit *unite, Tile carte[MAPSIZEX][MAPSIZEY])
+int next_res(Unit& unite, Tile carte[MAPSIZEX][MAPSIZEY])
 {
     int i, j, k;
     int rep = 0, x, y;
     char recherche;
 
 
-    if (unite->prod && unite->state==MINE)
+    if (unite.prod && unite.state==MINE)
     {
         //si y'a pas déjà des ressources à l'arrivée
-        if (!carte[DIV(unite->xdest)][DIV(unite->ydest)].res)
+        if (!carte[DIV(unite.xdest)][DIV(unite.ydest)].res)
         {
-            switch (unite->prec) //on regarde ce qu'on cherche (arbre ou rocher?)*
+            switch (unite.prec) //on regarde ce qu'on cherche (arbre ou rocher?)*
             {
                 case CHOP:
                 default:
@@ -1597,10 +1598,10 @@ int next_res(Unit *unite, Tile carte[MAPSIZEX][MAPSIZEY])
             break;
             }
 
-            x = DIV(unite->x + unite->cote/2); //on pprend la case sur laquelle l'unité est
-            y = DIV(unite->y + unite->cote/2);
+            x = DIV(unite.x + unite.cote/2); //on pprend la case sur laquelle l'unité est
+            y = DIV(unite.y + unite.cote/2);
 
-            for (k=1;k<=unite->vision;k++) //on veut dabords regarder les cases autours puis celles plus eloignées
+            for (k=1;k<=unite.vision;k++) //on veut dabords regarder les cases autours puis celles plus eloignées
             {
                 for (i=-k;i<=k;i++) //on regarde toutes les cases autours
                 {
@@ -1612,12 +1613,12 @@ int next_res(Unit *unite, Tile carte[MAPSIZEX][MAPSIZEY])
                             {
                                 if (if_dist(x, y, x+i, y+j, k))
                                 {
-                                    unite->xdest = (x+i)*COTE + COTE/2;
-                                    unite->ydest = (y+j)*COTE + COTE/2;
-                                    unite->state = MOVING;
-                                    unite->prec = MOVING;
-                                    unite->priority = AUTO;
-                                    unite->changepath = 1;
+                                    unite.xdest = (x+i)*COTE + COTE/2;
+                                    unite.ydest = (y+j)*COTE + COTE/2;
+                                    unite.state = MOVING;
+                                    unite.prec = MOVING;
+                                    unite.priority = AUTO;
+                                    unite.changepath = 1;
                                     rep = 1;
                                     break;
                                 }
@@ -1641,41 +1642,41 @@ int next_res(Unit *unite, Tile carte[MAPSIZEX][MAPSIZEY])
     else
     {
         rep = 0;
-        unite->state = MOVING;
-        unite->prec = MOVING;
-        unite->changepath = 1;
+        unite.state = MOVING;
+        unite.prec = MOVING;
+        unite.changepath = 1;
     }
 
     return rep;
 }
 
 //pour une unité ennemie, regarde quoi faire
-void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueur joueur, Unit *unite)
+void automat(Ancre& ancre, list<Build *>& ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur, Unit& unite)
 {
     int i, j;
     int a, b, dist, x, y, xbatdest = 0, ybatdest = 0, xtile, ytile;
     Maillon *maill;
-    Maillon_b* maill_b;
     Unit *inter;
     Build* bat;
     Tile tuile;
     int dist_prev = 1000000; ///À remplacer par valeur max int
     int dist_cur = 0;
     int xgo, ygo;
-    int batfound;
+    bool batfound;
 
+    list<Build *>::iterator iter_b;
 
-    if (unite->side==ENEMY)
+    if (unite.side==ENEMY)
     {
-        if (unite->priority<=GUARD)
+        if (unite.priority<=GUARD)
         {
-            xtile = DIV(unite->x+unite->cote/2);
-            ytile = DIV(unite->y+unite->cote/2);
+            xtile = DIV(unite.x+unite.cote/2);
+            ytile = DIV(unite.y+unite.cote/2);
 
-            if (unite->bat && !if_dist(xtile, ytile, unite->bat->x+unite->bat->w/2,  unite->bat->y+unite->bat->h/2, GUARD_DIST))
+            if (unite.bat && !if_dist(xtile, ytile, unite.bat->x+unite.bat->w/2,  unite.bat->y+unite.bat->h/2, GUARD_DIST))
             {
-                xbatdest = unite->bat->x+unite->bat->w/2;
-                ybatdest = unite->bat->y+unite->bat->h/2;
+                xbatdest = unite.bat->x+unite.bat->w/2;
+                ybatdest = unite.bat->y+unite.bat->h/2;
 
                 if (xtile>(xbatdest+DEFRANGE))
                     x = xbatdest + DEFRANGE;
@@ -1692,26 +1693,26 @@ void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueu
                     y = ytile;
 
 
-                unite->xdest = x*COTE + COTE/2;
-                unite->ydest = y*COTE + COTE/2;
-                unite->changepath = 1;
+                unite.xdest = x*COTE + COTE/2;
+                unite.ydest = y*COTE + COTE/2;
+                unite.changepath = 1;
 
-                unite->priority = GUARD+1;
+                unite.priority = GUARD+1;
             }
             else
             {
                 a = 1;
 
-                dist = unite->vision*COTE + 1; //la distance prise initialement est superieure à la portée de l'unité
+                dist = unite.vision*COTE + 1; //la distance prise initialement est superieure à la portée de l'unité
 
                 maill = ancre.debut;
                 while (maill!=NULL) //check d'unités opposantes à attaquer
                 {
                     inter = maill->unite;
 
-                    if (unite->side!=inter->side)
+                    if (unite.side!=inter->side)
                     {
-                        b = sqrt(pow(unite->x-inter->x, 2) + pow(unite->y-inter->y, 2)); //il faut ajouter +unite->cote/2 à chaque fois si on fait des unités de taille differente
+                        b = sqrt(pow(unite.x-inter->x, 2) + pow(unite.y-inter->y, 2)); //il faut ajouter +unite.cote/2 à chaque fois si on fait des unités de taille differente
                             //faudrait enlever sqrt...
                         if (b<dist)
                         {
@@ -1728,26 +1729,26 @@ void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueu
                 if (a) //check de batiments opposants à attaquer
                 {
 
-                    dist = unite->vision + 1;
+                    dist = unite.vision + 1;
 
-                    for (i=-unite->vision;i<=unite->vision;i++)
+                    for (i=-unite.vision;i<=unite.vision;i++)
                     {
-                        for (j=-unite->vision;j<=unite->vision;j++)
+                        for (j=-unite.vision;j<=unite.vision;j++)
                         {
                             if (xtile+i>=0 && xtile+i<MAPSIZEX && ytile+j>=0 && ytile+j<MAPSIZEY) //ptit blindage pour eviter les segmentaion faults
                             {
                                 tuile = carte[xtile+i][ytile+j];
                                 if (tuile.erige)
                                 {
-                                    if (tuile.erige->side!=unite->side)
+                                    if (tuile.erige->side!=unite.side)
                                     {
                                         b = sqrt(pow(i, 2) + pow(j, 2));
 
                                         if (b<dist)
                                         {
                                             dist = b;
-                                            x = unite->x+unite->cote/2 + COTE*i;
-                                            y = unite->y+unite->cote/2 + COTE*j;
+                                            x = unite.x+unite.cote/2 + COTE*i;
+                                            y = unite.y+unite.cote/2 + COTE*j;
                                             a = 0;
                                         }
                                     }
@@ -1759,45 +1760,45 @@ void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueu
 
                 if (!a) //si on a trouvé quelquechose à attaquer
                 {
-                    unite->xdest = x;
-                    unite->ydest = y;
-                    unite->changepath = 1;
+                    unite.xdest = x;
+                    unite.ydest = y;
+                    unite.changepath = 1;
 
-                    if (unite->priority<GUARD)
-                        unite->priority = AUTO;
+                    if (unite.priority<GUARD)
+                        unite.priority = AUTO;
                             //on utilise pas dist parceque ça peut etre faux (dist est pas exact pour les batiments)
-                    if ( (pow(x - (unite->x+unite->cote/2), 2) + pow(y - (unite->y+unite->cote/2), 2)) < pow(unite->range, 2))
+                    if ( (pow(x - (unite.x+unite.cote/2), 2) + pow(y - (unite.y+unite.cote/2), 2)) < pow(unite.range, 2))
                     {
-                        unite->state = ATTACK;
-                        unite->prec = ATTACK;
+                        unite.state = ATTACK;
+                        unite.prec = ATTACK;
 
-                        if (unite->priority==GUARD)
-                            unite->priority++;
+                        if (unite.priority==GUARD)
+                            unite.priority++;
                     }
                     else
                     {
-                        unite->state = MOVING;
-                        unite->prec = MOVING;
-                        unite->changepath = 1;
+                        unite.state = MOVING;
+                        unite.prec = MOVING;
+                        unite.changepath = 1;
                     }
                 } //si on a rien trouvé à attaquer et que c'est une unité qui roam
-                else if (unite->priority<=AUTO)//tests pour le deplacement vers les batiments opposés
+                else if (unite.priority<=AUTO)//tests pour le deplacement vers les batiments opposés
                 {
-                    xgo = unite->x;
-                    ygo = unite->y;
+                    xgo = unite.x;
+                    ygo = unite.y;
 
-                    maill_b=ancre_b.debut;
-                    while(maill_b!=NULL)
+                    for (iter_b = ancre_b.begin();iter_b!=ancre_b.end();iter_b++)
                     {
-                        batfound = 0;
+                        batfound = false;
 
-                        bat=maill_b->batiment;
-                        if(bat->side!=unite->side)
+                        bat = *iter_b;
+
+                        if(bat->side!=unite.side)
                         {
-                            batfound=1;
-                            xbatdest=bat->x*COTE;
-                            ybatdest=bat->y*COTE;
-                            dist_cur=sqrt(pow(xbatdest-unite->x, 2) + pow(ybatdest-unite->y, 2));
+                            batfound = true;
+                            xbatdest = bat->x*COTE;
+                            ybatdest = bat->y*COTE;
+                            dist_cur = sqrt(pow(xbatdest-unite.x, 2) + pow(ybatdest-unite.y, 2));
                         }
 
                         if(batfound && dist_cur<dist_prev)
@@ -1806,20 +1807,18 @@ void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueu
                             xgo=xbatdest;
                             ygo=ybatdest;
                         }
-
-                        maill_b=maill_b->next;
                     }
 
-//                    if (!(unite->x>=xgo-10 && unite->x<=xgo+160 && unite->y>=ygo-10 && unite->y<=ygo+160))
-//                    //((unite->x>xgo+155 ||unite->x<xgo-5) && (unite->y>ygo+155 ||unite->y<ygo-5))
+//                    if (!(unite.x>=xgo-10 && unite.x<=xgo+160 && unite.y>=ygo-10 && unite.y<=ygo+160))
+//                    //((unite.x>xgo+155 ||unite.x<xgo-5) && (unite.y>ygo+155 ||unite.y<ygo-5))
 //                    {
-                    if (unite->xdest!=xgo || unite->ydest!=ygo)
+                    if (unite.xdest!=xgo || unite.ydest!=ygo)
                     {
-                        unite->xdest = xgo;
-                        unite->ydest = ygo;
-                        unite->state = MOVING;
-                        unite->prec = MOVING;
-                        unite->changepath = 1;
+                        unite.xdest = xgo;
+                        unite.ydest = ygo;
+                        unite.state = MOVING;
+                        unite.prec = MOVING;
+                        unite.changepath = 1;
                     }
 
 //                    }

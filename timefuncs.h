@@ -25,22 +25,22 @@
 ///À faire, une fonction isElapsed
 
 ///prend la valeur temps maintenant
-void getTime(TIMESTRUCT* watch);
+void getTime(TIMESTRUCT& watch);
 
 ///renvoie le nombre de secondes passées entre first et second
-int getSecInt(TIMESTRUCT* first, TIMESTRUCT* second);
+int getSecInt(const TIMESTRUCT& first, const TIMESTRUCT& second);
 
 ///renvoie le nombre de secondes passées entre first et second
-double getSec(TIMESTRUCT* first, TIMESTRUCT* second);
+double getSec(const TIMESTRUCT& first, const TIMESTRUCT& second);
 
 ///renvoie le nombre de milisecondes passées entre first et second
-int getMilisec(TIMESTRUCT* first, TIMESTRUCT* second);
+int getMilisec(const TIMESTRUCT& first, const TIMESTRUCT& second);
 
 ///renvoie le nombre de microsecondes passées entre first et second
-long int getMicrosec(TIMESTRUCT* first, TIMESTRUCT* second);
+long int getMicrosec(const TIMESTRUCT& first, const TIMESTRUCT& second);
 
 ///ajoute (ou enlève) un certain nombre de seconde changeTime
-void addSec(TIMESTRUCT* changeTime, int howMuch);
+void addSec(TIMESTRUCT& changeTime, int howMuch);
 
 #endif // TIMEFUNCS_H_INCLUDED
 

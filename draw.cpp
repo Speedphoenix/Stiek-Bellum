@@ -1,6 +1,8 @@
 #include "draw.h"
 
-///AFFICHER LES DONN2ES D'UN BATIMENT APRES LES CASES
+///AFFICHER LES DONNÉES D'UN BATIMENT APRES LES CASES
+
+using namespace std;
 
 //dessine une "barre de chargement" pour l'hp etc
 BITMAP *draw_status(double HPmax, double HPcurrent, int type)
@@ -46,15 +48,16 @@ BITMAP *draw_status(double HPmax, double HPcurrent, int type)
 }
 
 //dessine l'UI avec les differents trucs dessus
-void draw_ui(BITMAP *dest, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites *sprites, Joueur joueur)
+void draw_ui(BITMAP *dest, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites& sprites, Joueur& joueur)
 {
     int i, j;
     BITMAP *temp;
     Maillon *inter;
-    int p=0, a=0;
-    TIMESTRUCT prev;
+    int p = 0, a = 0;
 
-    getTime(&prev);
+    //TIMESTRUCT prev;
+
+    //getTime(prev); ///useless?
 
     if (joueur.act==SELECTED || joueur.act==PLACE_BUILD)
     {
@@ -77,11 +80,11 @@ void draw_ui(BITMAP *dest, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites 
     }
 
 
-    masked_blit(sprites->ign_l, dest, 0, 0, 0, 0, MOVELIMIT, UI_HEIGHT);
+    masked_blit(sprites.ign_l, dest, 0, 0, 0, 0, MOVELIMIT, UI_HEIGHT);
 
     rectfill(dest, MOVELIMIT, 0, MAPWIDTH + MOVELIMIT, UI_HEIGHT, COL_UI_ACC); //là où y'aura la minimap
 
-    draw_sprite(dest, sprites->c_bar, MAPWIDTH + MOVELIMIT, 0);//l'info d'un personage
+    draw_sprite(dest, sprites.c_bar, MAPWIDTH + MOVELIMIT, 0);//l'info d'un personage
 
     //on affiche les icones des unités séléctionnées
     if (joueur.act==SELECTED || joueur.act==PLACE_BUILD)
@@ -96,12 +99,12 @@ void draw_ui(BITMAP *dest, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites 
                 switch (inter->unite->type)
                 {
                     case SOLDIER:
-                    draw_sprite(dest, sprites->epee_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
+                    draw_sprite(dest, sprites.epee_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
                 break;
 
                     default:
                     case PEASANT:
-                    draw_sprite(dest, sprites->paysant_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
+                    draw_sprite(dest, sprites.paysant_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
                 break;
                 }
 
@@ -117,37 +120,35 @@ void draw_ui(BITMAP *dest, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites 
         {
             default:
             case MAIRIE:
-                draw_sprite(dest, sprites->mairie_i, MAPWIDTH + MOVELIMIT + 25, 0);
+                draw_sprite(dest, sprites.mairie_i, MAPWIDTH + MOVELIMIT + 25, 0);
         break;
 
             case CASERNE:
-                draw_sprite(dest, sprites->caserne_i, MAPWIDTH + MOVELIMIT + 25, 0);
+                draw_sprite(dest, sprites.caserne_i, MAPWIDTH + MOVELIMIT + 25, 0);
         break;
         }
     }
 
     //si on est en train de cliquer sur le bouton pause
     if (mouse_b & 1 && mouse_x>=(SEPARE-PAUSE_S) && mouse_x<SEPARE && mouse_y<(ECRANY*COTE + PAUSE_S) && mouse_y>=(ECRANY*COTE))
-        draw_sprite(dest, sprites->pause_i[1], SEPARE-PAUSE_S, 0);
+        draw_sprite(dest, sprites.pause_i[1], SEPARE-PAUSE_S, 0);
     else
-        draw_sprite(dest, sprites->pause_i[0], SEPARE-PAUSE_S, 0);
+        draw_sprite(dest, sprites.pause_i[0], SEPARE-PAUSE_S, 0);
 
     if (a)
-        draw_sprite(dest, sprites->small_menu[p], SEPARE, 0);//le menu unité
+        draw_sprite(dest, sprites.small_menu[p], SEPARE, 0);//le menu unité
     else
-        draw_sprite(dest, sprites->r_bar, SEPARE, 0);
+        draw_sprite(dest, sprites.r_bar, SEPARE, 0);
 
 
 
     temp = minimap(ancre, carte, joueur, 0);
     blit(temp, dest, 0, 0, MOVELIMIT, 0, MAPSIZEX, MAPSIZEY);
     destroy_bitmap(temp);
-
-
 }
 
 //dessine la minimap
-BITMAP *minimap(Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur joueur, int vis)
+BITMAP *minimap(Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur, int vis)
 {
     int i, j;
     BITMAP *rep = create_bitmap(MAPWIDTH, UI_HEIGHT);
@@ -251,54 +252,53 @@ BITMAP *minimap(Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur joueur, int 
 }
 
 //la boite en haut à droite de l'écran avec les ressources...
-BITMAP *game_info(Joueur joueur, Sprites *sprites)
+BITMAP *game_info(Joueur& joueur, Sprites& sprites)
 {
     BITMAP *rep;
     TIMESTRUCT nouveau;
-    int sec, min;
+    int sec, minutes;
 
-    getTime(&nouveau);
+    getTime(nouveau);
 
-    sec = getSecInt(&joueur.debut, &nouveau);
-    min = (int) (sec/60);
+    sec = getSecInt(joueur.debut, nouveau);
+    minutes = (int) (sec/60);
     sec %= 60;
 
     rep = create_bitmap(ISIZEX, ISIZEY);
 
-    draw_sprite(rep, sprites->info_bar, 0, 0);
+    draw_sprite(rep, sprites.info_bar, 0, 0);
 
-    draw_sprite(rep, sprites->bois_i, XBOISI, YICON);
+    draw_sprite(rep, sprites.bois_i, XBOISI, YICON);
     textprintf_ex(rep, font, XBOIST, YTEXT, COL_UI_ACC, -1, ": %d", joueur.bois);
-    draw_sprite(rep, sprites->pierre_i, XPIERREI, YICON);
+    draw_sprite(rep, sprites.pierre_i, XPIERREI, YICON);
     textprintf_ex(rep, font, XPIERRET, YTEXT, COL_UI_ACC, -1, ": %d", joueur.marbre);
-    draw_sprite(rep, sprites->viande_i, XVIANDEI, YICON);
+    draw_sprite(rep, sprites.viande_i, XVIANDEI, YICON);
     textprintf_ex(rep, font, XVIANDET, YTEXT, COL_UI_ACC, -1, ": %d", joueur.viande);
 
     if (joueur.nend_b)
     {
-        draw_sprite(rep, sprites->camp_i, XREMAINI, YICON);
+        draw_sprite(rep, sprites.camp_i, XREMAINI, YICON);
         textprintf_ex(rep, font, XREMAINT, YTEXT, COL_UI_ACC, -1, ": %d", joueur.nend_b);
     }
     else
     {
-        draw_sprite(rep, sprites->enemy_i, XREMAINI, YICON);
+        draw_sprite(rep, sprites.enemy_i, XREMAINI, YICON);
         textprintf_ex(rep, font, XREMAINT, YTEXT, COL_UI_ACC, -1, ": %d", joueur.nend_e);
     }
 
-    textprintf_ex(rep, font, XTEMPS, YTEXT, COL_UI_ACC, -1, "%d%s%d", min, (sec<10)?":0":":",sec);
+    textprintf_ex(rep, font, XTEMPS, YTEXT, COL_UI_ACC, -1, "%d%s%d", minutes, (sec<10)?":0":":",sec);
 
 
     return rep;
 }
 
 //dessine tout sur la bitmap dest
-void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Sprites *sprites, Joueur *joueur)
+void draw_screen(BITMAP *dest, Ancre& ancre, list<Build *>& ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Sprites& sprites, Joueur& joueur)
 {
     int i, j;
     Unit *inter = NULL;
     Build *bat = NULL;
     Maillon *maill;
-    Maillon_b *maill_b;
     Tile chaque;
     BITMAP *raw, *temp, *fog;
     double time_max, time_current;
@@ -318,34 +318,34 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
     int xmin, ymin, xtaille, ytaille, xo, yo; //xo et yo sont l'orignine, là à partir d'où on va déssiner sur l'écran
 
     //raw est une bitmaps qui peut etre plus ou moins grande et qui sera stretched blit sur le buffer
-    raw = create_bitmap(joueur->xecran*COTE, joueur->yecran*COTE);
+    raw = create_bitmap(joueur.xecran*COTE, joueur.yecran*COTE);
 
-    xmin = DIV(joueur->xcamera);
-    ymin = DIV(joueur->ycamera);
+    xmin = DIV(joueur.xcamera);
+    ymin = DIV(joueur.ycamera);
 
-    xtaille = joueur->xecran; //x/y taille sont les "tailles de l'écran" en prenant en compte que l'éran ne tombe pas forcement pile sur une case
+    xtaille = joueur.xecran; //x/y taille sont les "tailles de l'écran" en prenant en compte que l'éran ne tombe pas forcement pile sur une case
     // si xcamera ne tombe pas sur un multiple de COTE
-    if (xmin*COTE!=joueur->xcamera)
+    if (xmin*COTE!=joueur.xcamera)
         xtaille++;
 
-    ytaille = joueur->yecran;
-    if (ymin*COTE!=joueur->ycamera)
+    ytaille = joueur.yecran;
+    if (ymin*COTE!=joueur.ycamera)
         ytaille++;
 
-    xo = -(joueur->xcamera%COTE);
-    yo = -(joueur->ycamera%COTE);
+    xo = -(joueur.xcamera%COTE);
+    yo = -(joueur.ycamera%COTE);
 
 
     DEB("3-0")
-    if (joueur->change)
+    if (joueur.change)
     {
         DEB("3-0-0")
-        if (joueur->chang_taill)
+        if (joueur.chang_taill)
         {
             DEB("3-0-1")
-            destroy_bitmap(sprites->prev);
-            sprites->prev = create_bitmap(joueur->xecran*COTE, joueur->yecran*COTE);
-            joueur->chang_taill = 0;
+            destroy_bitmap(sprites.prev);
+            sprites.prev = create_bitmap(joueur.xecran*COTE, joueur.yecran*COTE);
+            joueur.chang_taill = 0;
 
             DEB("3-0-2")
         }
@@ -359,44 +359,44 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
                 switch (chaque.type)
                 {
                     case TREE:
-                    draw_sprite(sprites->prev, sprites->arbre[chaque.position], xo + i*COTE, yo + j*COTE);
+                    draw_sprite(sprites.prev, sprites.arbre[chaque.position], xo + i*COTE, yo + j*COTE);
                 break;
 
                     case ROCK:
-                    draw_sprite(sprites->prev, sprites->pierre[chaque.position], xo + i*COTE, yo + j*COTE);
+                    draw_sprite(sprites.prev, sprites.pierre[chaque.position], xo + i*COTE, yo + j*COTE);
                 break;
 
                     case WATER:
-                    draw_sprite(sprites->prev, sprites->eau[chaque.position], xo + i*COTE, yo + j*COTE);
+                    draw_sprite(sprites.prev, sprites.eau[chaque.position], xo + i*COTE, yo + j*COTE);
                 break;
 
                     case MOUNTAIN:
-                    draw_sprite(sprites->prev, sprites->montagne[chaque.position], xo + i*COTE, yo + j*COTE);
+                    draw_sprite(sprites.prev, sprites.montagne[chaque.position], xo + i*COTE, yo + j*COTE);
                 break;
 
                     default:
                     case GRASS:
-                    draw_sprite(sprites->prev, sprites->herbe[chaque.position], xo + i*COTE, yo + j*COTE);
+                    draw_sprite(sprites.prev, sprites.herbe[chaque.position], xo + i*COTE, yo + j*COTE);
                 break;
 
                     case BUILDING:
-                    draw_sprite(sprites->prev, sprites->batiment[0][chaque.position], xo + i*COTE, yo + j*COTE);
+                    draw_sprite(sprites.prev, sprites.batiment[0][chaque.position], xo + i*COTE, yo + j*COTE);
                 break;
 
                     case CAMP:
-                    draw_sprite(sprites->prev, sprites->camp[0][chaque.position], xo + i*COTE, yo + j*COTE);
+                    draw_sprite(sprites.prev, sprites.camp[0][chaque.position], xo + i*COTE, yo + j*COTE);
                 break;
                 }
 
                 if (chaque.fleur)
-                    draw_sprite(sprites->prev, sprites->flower[chaque.fleur], xo + i*COTE, yo + j*COTE);
+                    draw_sprite(sprites.prev, sprites.flower[chaque.fleur], xo + i*COTE, yo + j*COTE);
 
             }
         }
-        joueur->change = 0;
+        joueur.change = 0;
     }
 
-    blit(sprites->prev, raw, 0, 0, 0, 0, joueur->xecran*COTE, joueur->yecran*COTE);
+    blit(sprites.prev, raw, 0, 0, 0, 0, joueur.xecran*COTE, joueur.yecran*COTE);
 
     DEB("3-01")
 
@@ -412,13 +412,13 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
 
     DEB("3-1")
 
-    if (joueur->act==PLACE_BUILD) //on montre l'aperçu du batiment à construire
+    if (joueur.act==PLACE_BUILD) //on montre l'aperçu du batiment à construire
     {
-        xval = (mouse_x * ((float)joueur->xecran/ECRANX)) + joueur->xcamera;
+        xval = (mouse_x * ((float)joueur.xecran/ECRANX)) + joueur.xcamera;
         xval = DIV(xval);
         xval-= xmin;
 
-        yval = (mouse_y * ((float)joueur->yecran/ECRANY)) + joueur->ycamera;
+        yval = (mouse_y * ((float)joueur.yecran/ECRANY)) + joueur.ycamera;
         yval = DIV(yval);
         yval-= ymin;
 
@@ -426,18 +426,17 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
         {
             for (j=0;j<2;j++)
             {
-                draw_sprite(raw, sprites->batiment[0][joueur->type*4+(i+2*j)], xo + (xval+i)*COTE, yo + (yval+j)*COTE);
+                draw_sprite(raw, sprites.batiment[0][joueur.type*4+(i+2*j)], xo + (xval+i)*COTE, yo + (yval+j)*COTE);
             }
         }
     }
 
     DEB("3-2")
 
-    maill_b = ancre_b.debut;
     //affichage des differentes infos des batiments
-    while (maill_b!=NULL)
+    for (auto& elem : ancre_b)
     {
-        bat = maill_b->batiment;
+        bat = elem;
         if ((bat->x+bat->w)>=xmin && (bat->y+bat->h)>=ymin && bat->x<=(xmin+xtaille) && bat->y<=(ymin+ytaille))
         {
             temp = draw_status(bat->hp_max, bat->hp, BAT);
@@ -447,8 +446,8 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
             if (bat->curr_queue)
             {
                 time_max = (bat->unit_queue[0]==PEASANT)?TEMPS_PAYS:TEMPS_SOLD;
-                getTime(&now);
-                time_current = getSec(&bat->start, &now);
+                getTime(now);
+                time_current = getSec(bat->start, now);
 
                 temp = draw_status(time_max, time_current, TIME);
                 draw_sprite(raw, temp, xo + (bat->x-xmin)*COTE + 37, yo + (bat->y-ymin)*COTE - 20);
@@ -457,8 +456,8 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
                 textprintf_ex(raw, font, xo + (bat->x-xmin)*COTE +30, yo + (bat->y-ymin)*COTE - 15, ROUGE, -1, "%d", bat->curr_queue);
             }
         }
-        maill_b = maill_b->next;
     }
+
 
     DEB("3-3")
 
@@ -475,15 +474,15 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
                 {
                     default:
                     case PEASANT:
-                    temp = sprites->peasant[inter->prec][inter->frame];
+                    temp = sprites.peasant[inter->prec][inter->frame];
                 break;
 
                     case SOLDIER:
-                    temp = sprites->sword[inter->prec][inter->frame];
+                    temp = sprites.sword[inter->prec][inter->frame];
                 break;
 
                     case ENEMY:
-                    temp = sprites->ennemi[inter->prec][inter->frame];
+                    temp = sprites.ennemi[inter->prec][inter->frame];
                 break;
                 }
 
@@ -491,16 +490,16 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
                 {
                     case RIGHT:
                     default:
-                    draw_sprite(raw, temp, inter->x-joueur->xcamera, inter->y-joueur->ycamera);
+                    draw_sprite(raw, temp, inter->x-joueur.xcamera, inter->y-joueur.ycamera);
                 break;
 
                     case LEFT:
-                    draw_sprite_h_flip(raw, temp, inter->x-joueur->xcamera, inter->y-joueur->ycamera);
+                    draw_sprite_h_flip(raw, temp, inter->x-joueur.xcamera, inter->y-joueur.ycamera);
                 break;
                 }
 
                 temp = draw_status((double)inter->hp_max, (double)inter->hp, UNIT);
-                draw_sprite(raw, temp, inter->x - joueur->xcamera, inter->y-10-joueur->ycamera);
+                draw_sprite(raw, temp, inter->x - joueur.xcamera, inter->y-10-joueur.ycamera);
                 destroy_bitmap(temp);
             }
         }
@@ -509,7 +508,7 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
 
     DEB("3-4")
 
-    maill = joueur->selection.debut;
+    maill = joueur.selection.debut;
     //affichage différent pour les unités selectionnées
     while (maill!=NULL)
     {
@@ -518,7 +517,7 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
         {
             if ((inter->x/COTE)>=xmin && (inter->y/COTE)>=ymin && (inter->x/COTE)<=(xmin+xtaille) && (inter->y/COTE)<=(ymin+ytaille))
             {
-                rect(raw, inter->x - joueur->xcamera, inter->y-joueur->ycamera, inter->x+inter->cote-joueur->xcamera, inter->y+inter->cote-joueur->ycamera, NOIR);
+                rect(raw, inter->x - joueur.xcamera, inter->y-joueur.ycamera, inter->x+inter->cote-joueur.xcamera, inter->y+inter->cote-joueur.ycamera, NOIR);
             }
 
         }
@@ -532,30 +531,30 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
     {
         if (!LAG)
         {
-            fog = create_bitmap(joueur->xecran*COTE, joueur->yecran*COTE);
+            fog = create_bitmap(joueur.xecran*COTE, joueur.yecran*COTE);
 
             maill = ancre.debut;
 
-            rectfill(fog, 0,0,COTE*joueur->xecran, COTE*joueur->yecran, NOIR);
+            rectfill(fog, 0,0,COTE*joueur.xecran, COTE*joueur.yecran, NOIR);
             while(maill!=NULL)
             {
                 inter = maill->unite;
                 if (inter->side==ALLY)
                 {
-                    if ((inter->x/COTE)>=xmin-(sprites->fog->w)/2 && (inter->y/COTE)>=ymin -(sprites->fog->w)/2 && (inter->x/COTE)<=(xmin+xtaille)+(sprites->fog->w)/2 && (inter->y/COTE)<=(ymin+ytaille)+(sprites->fog->w)/2)
+                    if ((inter->x/COTE)>=xmin-(sprites.fog->w)/2 && (inter->y/COTE)>=ymin -(sprites.fog->w)/2 && (inter->x/COTE)<=(xmin+xtaille)+(sprites.fog->w)/2 && (inter->y/COTE)<=(ymin+ytaille)+(sprites.fog->w)/2)
                     {
-                        xfog = inter->x-joueur->xcamera;
-                        yfog = inter->y-joueur->ycamera;
+                        xfog = inter->x-joueur.xcamera;
+                        yfog = inter->y-joueur.ycamera;
 
-                        //blit(sprites->fog, fog, 0,0, inter->x-joueur->xcamera-(sprites->fog->w)/2, inter->y-joueur->ycamera-(sprites->fog->w)/2, 600, 600);
+                        //blit(sprites.fog, fog, 0,0, inter->x-joueur.xcamera-(sprites.fog->w)/2, inter->y-joueur.ycamera-(sprites.fog->w)/2, 600, 600);
 
                         for (i=0; i<600; i++)
                         {
                             for(j=0; j<600;j++)
                             {
-                                getim=getpixel(sprites->fog,j,i);
-                                getdest=getpixel(raw,xfog-(sprites->fog->w)/2+j, yfog-(sprites->fog->w)/2+i);
-                                getbuf=getpixel(fog,xfog-(sprites->fog->w)/2+j, yfog-(sprites->fog->w)/2+i);
+                                getim=getpixel(sprites.fog,j,i);
+                                getdest=getpixel(raw,xfog-(sprites.fog->w)/2+j, yfog-(sprites.fog->w)/2+i);
+                                getbuf=getpixel(fog,xfog-(sprites.fog->w)/2+j, yfog-(sprites.fog->w)/2+i);
 
 
                                 if ((getim!=NOIR) && getim!=MAG && getbuf!=MAG )
@@ -568,16 +567,16 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
                                     gdest=getg(getdest);
                                     bdest=getb(getdest);
 
-                                    putpixel(fog,xfog-(sprites->fog->w)/2+j, yfog-(sprites->fog->w)/2+i,makecol((CLRBUF-CLRF)*rim+CLRF*rdest,(CLRBUF-CLRF)*gim+CLRF*gdest,(CLRBUF-CLRF)*bim+CLRF*bdest));
+                                    putpixel(fog,xfog-(sprites.fog->w)/2+j, yfog-(sprites.fog->w)/2+i,makecol((CLRBUF-CLRF)*rim+CLRF*rdest,(CLRBUF-CLRF)*gim+CLRF*gdest,(CLRBUF-CLRF)*bim+CLRF*bdest));
 
                                     ///if (getbuf!=makecol(0,0,0)&&(getbuf!=makecol(255,0,0)))
                                     ///{
-                                    ///    putpixel(fog, inter->x-joueur->xcamera-(sprites->fog->w)/2+j, inter->y-joueur->ycamera-(sprites->fog->w)/2+i,makecol(255,0,255));
+                                    ///    putpixel(fog, inter->x-joueur.xcamera-(sprites.fog->w)/2+j, inter->y-joueur.ycamera-(sprites.fog->w)/2+i,makecol(255,0,255));
                                     ///}
                                 }
                                 if (getim==MAG)
                                 {
-                                    putpixel(fog, xfog-(sprites->fog->w)/2+j, yfog-(sprites->fog->w)/2+i,getim);
+                                    putpixel(fog, xfog-(sprites.fog->w)/2+j, yfog-(sprites.fog->w)/2+i,getim);
                                 }
 
                             }
@@ -589,9 +588,9 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
             }
 
 
-//            for (i=0; i<joueur->yecran*COTE; i++)
+//            for (i=0; i<joueur.yecran*COTE; i++)
 //            {
-//                for(j=0; j<joueur->xecran*COTE;j++)
+//                for(j=0; j<joueur.xecran*COTE;j++)
 //                {
 //
 //                    getdest=getpixel(raw,j, i);
@@ -610,7 +609,7 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
 //                }
 //            }
 
-            masked_blit(fog, raw, 0,0,0,0, joueur->xecran*COTE, joueur->yecran*COTE);
+            masked_blit(fog, raw, 0,0,0,0, joueur.xecran*COTE, joueur.yecran*COTE);
             destroy_bitmap(fog);
         }
         else
@@ -621,41 +620,41 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
                 {
                     if (!carte[i+xmin][j+ymin].visible) //si on ne peut pas voir la tuile
                     {
-                        blit(sprites->brouillard, raw, 0, 0, xo + i*COTE, yo + j*COTE, COTE, COTE);
+                        blit(sprites.brouillard, raw, 0, 0, xo + i*COTE, yo + j*COTE, COTE, COTE);
                     }
                 }
             }
         }
     }
     DEB("3-6")
-    if (joueur->act==SELECTING)
+    if (joueur.act==SELECTING)
     {
-        rect(raw, joueur->xprev-joueur->xcamera, joueur->yprev-joueur->ycamera, mouse_x*((float)joueur->xecran/ECRANX), mouse_y*((float)joueur->yecran/ECRANY), VERT);
+        rect(raw, joueur.xprev-joueur.xcamera, joueur.yprev-joueur.ycamera, mouse_x*((float)joueur.xecran/ECRANX), mouse_y*((float)joueur.yecran/ECRANY), VERT);
     }
     DEB("3-7")
 
     /// À TRANSFORMER EN STRETCH BLIT
-    stretch_blit(raw, dest, 0, 0, joueur->xecran*COTE, joueur->yecran*COTE,0, 0, ECRANX*COTE, ECRANY*COTE);
+    stretch_blit(raw, dest, 0, 0, joueur.xecran*COTE, joueur.yecran*COTE,0, 0, ECRANX*COTE, ECRANY*COTE);
     destroy_bitmap(raw);
 
     DEB("3-8")
     temp = create_bitmap(ECRANX*COTE, UI_HEIGHT);
-    draw_ui(temp, ancre, carte, sprites, *joueur);
+    draw_ui(temp, ancre, carte, sprites, joueur);
     blit(temp, dest, 0, 0, 0, ECRANY*COTE, ECRANX*COTE, UI_HEIGHT);
     destroy_bitmap(temp);
     DEB("3-9")
 
-    temp = game_info(*joueur, sprites);
+    temp = game_info(joueur, sprites);
     blit(temp, dest, 0, 0, ECRANX*COTE - ISIZEX, 0, ISIZEX, ISIZEY);
     destroy_bitmap(temp);
 
     DEB("3-10")
 
     //le rectangle en bas sur l'ecran pour pouvoir "scroll"
-    masked_blit(sprites->ign_d, dest, 0, 0, 0, YSCREEN - MOVELIMIT, XSCREEN, MOVELIMIT);
+    masked_blit(sprites.ign_d, dest, 0, 0, 0, YSCREEN - MOVELIMIT, XSCREEN, MOVELIMIT);
 
     //on dessine la souris
-    draw_sprite(dest, sprites->souris, mouse_x, mouse_y);
+    draw_sprite(dest, sprites.souris, mouse_x, mouse_y);
 }
 
 

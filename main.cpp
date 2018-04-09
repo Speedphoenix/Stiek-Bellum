@@ -34,13 +34,14 @@
 
 
 
+using namespace std;
 
 
 ///renvoie la valeur de victoire
-int victory_check(Joueur joueur);
+int victory_check(const Joueur& joueur);
 
 ///Remplace le rest: fait attendre en prenant en compte le temps écoulé depuis le dernier tour de boucle
-void attente(TIMESTRUCT *prev);
+void attente(TIMESTRUCT& prev);
 
 
 int main()
@@ -49,7 +50,7 @@ int main()
 
     Tile carte[MAPSIZEX][MAPSIZEY]; //la map: un tableau de tuiles géant
     Ancre ancre = NANCRE;           //La liste chainée contenant toutes les unités (alliées ET ennemies)
-    Ancre_b ancre_b = NANCRE;       //La liste chainée contenant tous les batiments (alliés ET ennemis)
+    list<Build *> ancre_b;          //La liste chainée contenant tous les batiments (alliés ET ennemis)
     Joueur joueur;                  //la structure avec toutes les valeurs "globales" (position de la camera, ressources...)
     Sprites sprites;                //La structure contenant toutes les bitmaps
     BITMAP *buffer;                 //Le buffer de l'écran
@@ -63,7 +64,7 @@ int main()
     buffer = create_bitmap(XSCREEN, YSCREEN);
 
     //on load les bitmaps depuis les fichiers
-    load_sprites(&sprites);
+    load_sprites(sprites);
     joueur.langue = ENGLISH;
 
 
@@ -74,7 +75,7 @@ int main()
         {
             DEB("0")
 
-            choix = menu(sprites, &joueur, MAIN_MENU);
+            choix = menu(sprites, joueur, MAIN_MENU);
             DEB("0-0")
 
             if (choix!=EXIT)
@@ -87,10 +88,10 @@ int main()
                     case NEWGAME:
                     do
                     {
-                        map = menu(sprites, &joueur, MAP_MENU);
+                        map = menu(sprites, joueur, MAP_MENU);
                         if (map)
                         {
-                            diff = menu(sprites, &joueur, DIFF_MENU);
+                            diff = menu(sprites, joueur, DIFF_MENU);
                         }
                         DEB("0-2")
                     }while (map!=0 && diff==0);
@@ -99,7 +100,7 @@ int main()
                 break;
 
                     case LOAD:
-                    map = menu(sprites, &joueur, LOAD_MENU);
+                    map = menu(sprites, joueur, LOAD_MENU);
                     if (map)
                         map+=3;
 
@@ -112,14 +113,14 @@ int main()
         DEB("0-4")
 
         //on remet les valeurs aux valeurs initiales (discutablement inutile)
-        reset(&ancre, &ancre_b, &joueur, carte);
+        reset(ancre, ancre_b, joueur, carte);
 
         DEB("0-5")
 
         if (choix!=EXIT)
         {
             //on charge la map
-            load_game(carte, &ancre, &ancre_b, &joueur, map);
+            load_game(carte, &ancre, ancre_b, joueur, map);
 
             DEB("0-6")
 
@@ -132,28 +133,28 @@ int main()
             {
                 DEB("1")
                 //check des action du joueur (de la souris)
-                action(&ancre, &ancre_b, &joueur, carte);
+                action(ancre, ancre_b, joueur, carte);
                 DEB("2")
                 //mise à jour du terrain de jeu (faire avancer toutes les unités, attaque etc)
-                update(carte, &ancre, &ancre_b, &joueur);
+                update(carte, &ancre, ancre_b, joueur);
                 DEB("3")
                 //affichage de tout l'écran sur le buffer
-                draw_screen(buffer, ancre, ancre_b, carte, &sprites, &joueur);
+                draw_screen(buffer, ancre, ancre_b, carte, sprites, joueur);
                 blit(buffer, screen, 0, 0, 0, 0, XSCREEN, YSCREEN);
                 DEB("4")
                 if (joueur.pause)
-                    pause_game(&joueur, sprites, carte, ancre, ancre_b);
+                    pause_game(joueur, sprites, carte, ancre, ancre_b);
                 DEB("5")
                 end = victory_check(joueur);
                 DEB("6")
                 //temporisation de la boucle de jeu
-                attente(&prev);
+                attente(prev);
             }
 
             if (end==1)
             {
                 DEB("7")
-                end_game(sprites, &joueur);
+                end_game(sprites, joueur);
             }
             else if (end==-1)
             {
@@ -181,7 +182,7 @@ int main()
             if (TEST && key[KEY_ESC]) //on garede la partie dans le deuxième fichier de sauvegarde (pour tester)
                 save_game(carte, ancre, ancre_b, joueur, 2);
             DEB("8-2")
-            reset(&ancre, &ancre_b, &joueur, carte);
+            reset(ancre, ancre_b, joueur, carte);
             DEB("8-3")
         }
         else
@@ -198,7 +199,7 @@ int main()
 END_OF_MAIN();
 
 //renvoie la valeur de victoire
-int victory_check(Joueur joueur)
+int victory_check(const Joueur& joueur)
 {
     if (joueur.nend_b>0)
         return 0;
@@ -217,15 +218,15 @@ int victory_check(Joueur joueur)
 }
 
 //pour remplacer le rest, on veut compenser pour d'eventuels gros calculs
-void attente(TIMESTRUCT *prev)
+void attente(TIMESTRUCT& prev)
 {
     TIMESTRUCT nouveau;
     int elapsed; //elapsed est en milisec
 
-    getTime(&nouveau);
+    getTime(nouveau);
 
     //le temps passé en milisec
-    elapsed = getMilisec(prev, &nouveau);
+    elapsed = getMilisec(prev, nouveau);
 
     if (HOW_LONG)
         fprintf(stderr, "total: %d\n\n", elapsed);

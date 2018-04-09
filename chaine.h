@@ -6,11 +6,16 @@
     ce fichier contient les prototypes des sous programmes necessaires à la manipulation des maillons
 */
 
+#include <iostream>
+#include <list>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include <allegro.h>
+
+
 
 #include "timefuncs.h" //functions for measuring time N' stuff
 
@@ -23,7 +28,7 @@
 /* renvoie une erreur de chargement */
 #define ERR_CHARG(x) {if(!x){allegro_message("probleme de chargement " #x);exit(1);}}
 
-/* Pour initialiser une ancre */
+/** Pour initialiser une ancre */
 #define NANCRE {NULL,NULL}
 
 /*les valeurs de side/type de l'unité*/

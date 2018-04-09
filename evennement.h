@@ -132,7 +132,7 @@
 #define EASY 1
 #define HARD 2
 #define HARDCORE 3
-#define BALANCE(x) ((double)(x/joueur->level))
+#define BALANCE(x) ((double)(x/joueur.level))
 
 /* les differentes valeurs pour les differentes langues */
 #define ENGLISH 0
@@ -247,27 +247,27 @@ void add_unit(Ancre *ancre, int type, int priority, int x, int y, Build *bat);
 Build *nouv_batiment(int x, int y, int w, int h, int side, int state);
 
 ///verifie si on peut ajouter le batiment à ces coordonnées et le place et l'ajoute à la liste chainée (renvoie 0 sinon)
-int add_bat(Ancre_b *ancre_b, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int state, int type);
+bool add_bat(std::list<Build *>& ancre_b, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int state, int type);
 
 ///detruit le batiment (l'enleve de l'ancre, et de la map)
-void destroy_build(Ancre_b *ancre, Maillon_b *del, Tile carte[MAPSIZEX][MAPSIZEY]);
+void destroy_build(std::list<Build *>& ancre, std::list<Build *>::iterator& del, Tile carte[MAPSIZEX][MAPSIZEY]);
 
 
 ///prend les actions du joueur (action avec la souris) ancre est l'ancre de tous les persos
-void action(Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY]);
+void action(Ancre& ancre, std::list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY]);
 
 ///prend les actions du joueur sur le terrain de jeu (la map)
-void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y);
+void action_ecran(Ancre& ancre, std::list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y);
 
 ///prend les actions du joueur sur l'UI
-void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y);
+void action_ui(Ancre& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y);
 
 ///renvoie quel bouton a été cliqué sur le menu unité (0 si rien)
 int unit_menu_click(int x, int y);
 
 
 ///renvoie un pointeur sur l'unité présente à ces coordonnées (NULL s'il n'y en a pas) side_excl permet d'ignorer la population ennemie (mettre 2 ou 3 pour ne pas l'utiliser)
-Unit *trouve(Ancre ancre, int x, int y, Unit *exclu, int side_excl);
+Unit *trouve(Ancre& ancre, int x, int y, Unit *exclu, int side_excl);
 
 ///découvre les tuiles autours des coordonnées dans la portée
 void eclaire(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int porte);
@@ -276,10 +276,10 @@ void eclaire(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int porte);
 int if_dist(int x1, int y1, int x2, int y2, int dist);
 
 ///rempli l'ancre dest avec les unités comprises dans la selection
-void selec(Ancre *dest, Ancre ancre, int x1, int y1, int x2, int y2);
+void selec(Ancre *dest, Ancre& ancre, int x1, int y1, int x2, int y2);
 
 ///pour voir l'optimisation
-void temps_passe(TIMESTRUCT *prev);
+void temps_passe(TIMESTRUCT& prev);
 
 ///libere une liste chainée de steps
 void free_path(Step **ancre);

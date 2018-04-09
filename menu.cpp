@@ -4,8 +4,10 @@
     ce fichier contient les fonctions de menu
 */
 
+using namespace std;
+
 //les menus
-int menu(Sprites sprites, Joueur *joueur, int type)
+int menu(Sprites& sprites, Joueur& joueur, int type)
 {
     int i;
     //buffer est le buffer, fond est le fond, avant est ce qui contient les boutons mais ne change pas, dessus est ce qui change (les hovers)
@@ -66,7 +68,7 @@ int menu(Sprites sprites, Joueur *joueur, int type)
 
     for (i=0;i<4;i++)
     {
-        draw_sprite(avant, sprites.buttons[type][joueur->langue][i], boutonx, i*ecart);
+        draw_sprite(avant, sprites.buttons[type][joueur.langue][i], boutonx, i*ecart);
     }
 
     while (rep==-1)
@@ -100,7 +102,7 @@ int menu(Sprites sprites, Joueur *joueur, int type)
                 draw_sprite(dessus, sprites.hover_unit[0][choix-1], boutonx + BOUTON_W + ECART_H - HOVER_W/2, choix*ecart);
             }
 
-            if (!(mouse_b & 1) && joueur->clic_prec==1)
+            if (!(mouse_b & 1) && joueur.clic_prec==1)
             {
                 if (choix>0 || type==MAP_MENU || type==DIFF_MENU || type==SAVE_MENU)
                     rep = choix;
@@ -108,14 +110,14 @@ int menu(Sprites sprites, Joueur *joueur, int type)
         }
         else if (mouse_x>xflag && mouse_x<(xflag+3*60) && mouse_y>yflag && mouse_y<(yflag+60))
         {
-            if (!(mouse_b & 1) && joueur->clic_prec==1)
+            if (!(mouse_b & 1) && joueur.clic_prec==1)
             {
-                joueur->langue = (int)((mouse_x-xflag)/60);
+                joueur.langue = (int)((mouse_x-xflag)/60);
 
                 rectfill(avant, 0, 0, w, h, MAG);
                 for (i=0;i<4;i++)
                 {
-                    draw_sprite(avant, sprites.buttons[type][joueur->langue][i], boutonx, i*ecart);
+                    draw_sprite(avant, sprites.buttons[type][joueur.langue][i], boutonx, i*ecart);
                 }
             }
 
@@ -123,17 +125,17 @@ int menu(Sprites sprites, Joueur *joueur, int type)
 
         if (mouse_b & 8) //le bouton lateral de la souris (pour revenir en arrière)
         {
-            if ((type==MAP_MENU || type==DIFF_MENU || type==SAVE_MENU) && joueur->clic_prec!=8)
+            if ((type==MAP_MENU || type==DIFF_MENU || type==SAVE_MENU) && joueur.clic_prec!=8)
                 rep = 0;
 
-            joueur->clic_prec = 8;
+            joueur.clic_prec = 8;
         }
         else if (mouse_b & 1)
-            joueur->clic_prec = 1;
+            joueur.clic_prec = 1;
         else if (mouse_b & 2)
-            joueur->clic_prec = 2;
+            joueur.clic_prec = 2;
         else
-            joueur->clic_prec = 0;
+            joueur.clic_prec = 0;
 
         masked_blit(dessus, buffer, 0, 0, xboard, yboard, w, h);
         draw_sprite(buffer, sprites.flags, xflag, yflag);
@@ -152,11 +154,11 @@ int menu(Sprites sprites, Joueur *joueur, int type)
 }
 
 //met le jeu en ause, reprend quand le joueur l'a décidé
-void pause_game(Joueur *joueur, Sprites sprites, Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Ancre_b ancre_b)
+void pause_game(Joueur& joueur, Sprites& sprites, Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, list<Build *>& ancre_b)
 {
     int choix = 1;
 
-    while (joueur->pause)
+    while (joueur.pause)
     {
         choix = menu(sprites, joueur, PAUSE_MENU);
 
@@ -164,7 +166,7 @@ void pause_game(Joueur *joueur, Sprites sprites, Tile carte[MAPSIZEX][MAPSIZEY],
         {
             case RESUME:
 
-            joueur->pause = 0;
+            joueur.pause = 0;
         break;
 
             case SAVE:
@@ -175,15 +177,15 @@ void pause_game(Joueur *joueur, Sprites sprites, Tile carte[MAPSIZEX][MAPSIZEY],
                 if (choix)
                 {
                     choix+=3;
-                    save_game(carte, ancre, ancre_b, *joueur, choix);
+                    save_game(carte, ancre, ancre_b, joueur, choix);
                 }
             }while (choix);
 
         break;
 
             case EXIT:
-            joueur->quit = 1;
-            joueur->pause = 0;
+            joueur.quit = 1;
+            joueur.pause = 0;
         break;
 
             default:
@@ -193,7 +195,7 @@ void pause_game(Joueur *joueur, Sprites sprites, Tile carte[MAPSIZEX][MAPSIZEY],
 }
 
 //à appeller à la fin d'une partie pour les meilleurs scores
-void end_game(Sprites sprites, Joueur *joueur)
+void end_game(Sprites& sprites, Joueur& joueur)
 {
     int i, j, a, xbouton;
     BITMAP *buffer, *fond, *avant;
@@ -202,7 +204,7 @@ void end_game(Sprites sprites, Joueur *joueur)
     int quant, nouveau, tab[11];
     TIMESTRUCT now;
 
-    sprintf(nom, "%s%d-%d.txt", SAUV, joueur->map_num, joueur->level);
+    sprintf(nom, "%s%d-%d.txt", SAUV, joueur.map_num, joueur.level);
 
     DEB("7-0")
 
@@ -227,9 +229,9 @@ void end_game(Sprites sprites, Joueur *joueur)
         fclose(fic);
     }
     DEB("7-3")
-    getTime(&now);
+    getTime(now);
 
-    nouveau = getSecInt(&joueur->debut, &now);
+    nouveau = getSecInt(joueur.debut, now);
 
     j = 0;
     a = 1;
@@ -269,10 +271,10 @@ void end_game(Sprites sprites, Joueur *joueur)
     rectfill(avant, 0, 0, PAUSE_W, PAUSE_H, MAG);
 
     xbouton = XSCREEN/2 - BOUTON_W/2;
-    draw_sprite(avant, sprites.v_buttons[joueur->langue][0], PAUSE_W/2 - BOUTON_W/2, 0);
+    draw_sprite(avant, sprites.v_buttons[joueur.langue][0], PAUSE_W/2 - BOUTON_W/2, 0);
 
     DEB("7-7")
-    switch (joueur->langue)
+    switch (joueur.langue)
     {
         default:
         case ENGLISH:
@@ -294,7 +296,7 @@ void end_game(Sprites sprites, Joueur *joueur)
     }
     textprintf_ex(avant, font, 170, ECART_P + 40 + j*20, COL_UI_ACC, -1, "%s", "YOU");
     DEB("7-8")
-    draw_sprite(avant, sprites.v_buttons[joueur->langue][1], PAUSE_W/2 - BOUTON_W/2, PAUSE_H - ECART_P);
+    draw_sprite(avant, sprites.v_buttons[joueur.langue][1], PAUSE_W/2 - BOUTON_W/2, PAUSE_H - ECART_P);
 
     a = 0;
     while (!a)
@@ -307,7 +309,7 @@ void end_game(Sprites sprites, Joueur *joueur)
         if (mouse_x>xbouton && mouse_x<(xbouton + BOUTON_W) && (mouse_y-PAUSE_Y)>(PAUSE_H-ECART_P) && (mouse_y-PAUSE_Y)<(PAUSE_H-(ECART_P-BOUTON_H)))
         {
             DEB("7-10")
-            if (joueur->clic_prec==1 && !(mouse_b & 1))
+            if (joueur.clic_prec==1 && !(mouse_b & 1))
             {
                 DEB("7-11")
                 a = 1;
@@ -315,11 +317,11 @@ void end_game(Sprites sprites, Joueur *joueur)
         }
 
         if (mouse_b & 1)
-            joueur->clic_prec = 1;
+            joueur.clic_prec = 1;
         else if (mouse_b & 2)
-            joueur->clic_prec = 2;
+            joueur.clic_prec = 2;
         else
-            joueur->clic_prec = 0;
+            joueur.clic_prec = 0;
 
         rest(20);
     }

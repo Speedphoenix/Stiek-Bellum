@@ -10,37 +10,37 @@
 
 #ifdef _WINDOWS
 
-void getTime(TIMESTRUCT* watch)
+void getTime(TIMESTRUCT& watch)
 {
     //what to do?
 }
 
 //renvoie le nombre de secondes passées entre first et second
-int getSecInt(TIMESTRUCT* first, TIMESTRUCT* second)
+int getSecInt(TIMESTRUCT& first, TIMESTRUCT& second)
 {
     //what to do?
 }
 
 //renvoie le nombre de secondes passées entre first et second
-double getSec(TIMESTRUCT* first, TIMESTRUCT* second)
+double getSec(TIMESTRUCT& first, TIMESTRUCT& second)
 {
     //what to do?
 }
 
 //renvoie le nombre de milisecondes passées entre first et second
-int getMilisec(TIMESTRUCT* first, TIMESTRUCT* second)
+int getMilisec(TIMESTRUCT& first, TIMESTRUCT& second)
 {
     //what to do?
 }
 
 //renvoie le nombre de microsecondes passées entre first et second
-long int getMicrosec(TIMESTRUCT* first, TIMESTRUCT* second)
+long int getMicrosec(TIMESTRUCT& first, TIMESTRUCT& second)
 {
     //what to do?
 }
 
 //ajoute (ou enlève) un certain nombre de seconde changeTime
-void addSec(TIMESTRUCT* changeTime, int howMuch)
+void addSec(TIMESTRUCT& changeTime, int howMuch)
 {
 
 }
@@ -48,62 +48,62 @@ void addSec(TIMESTRUCT* changeTime, int howMuch)
 
 #else
 
-void getTime(TIMESTRUCT* watch)
+void getTime(TIMESTRUCT& watch)
 {
-    clock_gettime(CLOCK_MONOTONIC, watch);
+    clock_gettime(CLOCK_MONOTONIC, &watch);
 }
 
 
 //renvoie le nombre de secondes passées entre first et second
-int getSecInt(TIMESTRUCT* first, TIMESTRUCT* second)
+int getSecInt(const TIMESTRUCT& first, const TIMESTRUCT& second)
 {
     //le nombre de secondes passées (troncature)
-    return (int) (second->tv_sec - first->tv_sec);
+    return (int) (second.tv_sec - first.tv_sec);
     //1e-9: on multiplie par 0.000 000 001 (nanosecondes)
 }
 
 //renvoie le nombre de secondes passées entre first et second
-double getSec(TIMESTRUCT* first, TIMESTRUCT* second)
+double getSec(const TIMESTRUCT& first, const TIMESTRUCT& second)
 {
     //le nombre de secondes passées (troncature)
-    return (second->tv_sec - first->tv_sec) + 1e-9 * (second->tv_nsec - first->tv_nsec);
+    return (second.tv_sec - first.tv_sec) + 1e-9 * (second.tv_nsec - first.tv_nsec);
     //1e-9: on multiplie par 0.000 000 001 (nanosecondes)
 }
 
 //renvoie le nombre de milisecondes passées entre first et second
-int getMilisec(TIMESTRUCT* first, TIMESTRUCT* second)
+int getMilisec(const TIMESTRUCT& first, const TIMESTRUCT& second)
 {
     int sec, usec;
 
     //le nombre de secondes passées (est généralement 0)
-    sec = second->tv_sec - first->tv_sec;
+    sec = second.tv_sec - first.tv_sec;
 
     //le nombre de microsec passées (géneralement négatif quand sec = 1)
-    usec = (int)(second->tv_nsec/1000) - (int)(first->tv_nsec/1000);
+    usec = (int)(second.tv_nsec/1000) - (int)(first.tv_nsec/1000);
 
     //le temps passé en milisec
     return (1000*sec + (int)(usec/1000));
 }
 
 //renvoie le nombre de microsecondes passées entre first et second
-long int getMicrosec(TIMESTRUCT* first, TIMESTRUCT* second)
+long int getMicrosec(const TIMESTRUCT& first, const TIMESTRUCT& second)
 {
     int sec, usec;
 
     //le nombre de secondes passées (est généralement 0)
-    sec = second->tv_sec - first->tv_sec;
+    sec = second.tv_sec - first.tv_sec;
 
     //le nombre de microsec passées (géneralement négatif quand sec = 1)
-    usec = (int)(second->tv_nsec/1000) - (int)(first->tv_nsec/1000);
+    usec = (int)(second.tv_nsec/1000) - (int)(first.tv_nsec/1000);
 
     //le temps passé en microsec
     return ( (1e6 * sec) + usec);
 }
 
 //ajoute (ou enlève) un certain nombre de seconde changeTime
-void addSec(TIMESTRUCT* changeTime, int howMuch)
+void addSec(TIMESTRUCT& changeTime, int howMuch)
 {
-    changeTime->tv_sec += howMuch;
+    changeTime.tv_sec += howMuch;
 }
 
 

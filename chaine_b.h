@@ -62,38 +62,5 @@ typedef struct Batiment{
 ///un batiment
 }Build;
 
-///un maillon de la liste chainée
-typedef struct Maillon_b{
-    ///le batiment stockée dans le maillon
-    Build *batiment;
-    struct Maillon_b *next;
-    struct Maillon_b *prev;
-
-///un maillon de la liste chainée
-}Maillon_b;
-
-///L'ancre de la liste chainée
-typedef struct Ancre_b{
-    struct Maillon_b *debut;
-    struct Maillon_b *fin;
-
-///L'ancre de la liste chainée
-}Ancre_b;
-
-///pour ajouter un maillon au début de la chaine
-///unite est l'unité à mettre dans le nouveau maillon
-void ajout_debut_b(Ancre_b *ancre, Build *bat);
-
-///pour supprimer le maillon en paramètre
-///enlev est le maillon à détacher
-///la chaine est rattachée en place après l'opération
-void supprimer_b(Ancre_b *ancre, Maillon_b *enlev, int del);
-
-///libere l'éspace mémoire de tous les maillons
-void libere_b(Ancre_b *ancre, int del);
-
-///renvoie le nombre de maillons dans la chaine
-int taille_b(Ancre_b ancre);
-
 
 #endif

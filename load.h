@@ -195,22 +195,22 @@ typedef struct Sprites{
 
 
 ///ce sous programme sert à définir les différents parametres d'une tuile
-void set_tile(Tile *tile, char a);
+void set_tile(Tile& tile, char a);
 
 ///pour la création des petits menus dans l'UI
-BITMAP *create_menu(Sprites sprites, int type);
+BITMAP *create_menu(Sprites& sprites, int type);
 
 ///ce sousprogramme sert à charger les bitmaps et sprites
-void load_sprites(Sprites *sprites);
+void load_sprites(Sprites& sprites);
 
 ///chargement de toute la map dans le tableau vide et des bitmaps dans sprites
-void load_game(Tile vide[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, int type);
+void load_game(Tile vide[MAPSIZEX][MAPSIZEY], Ancre *ancre, std::list<Build *>& ancre_b, Joueur& joueur, int type);
 
 ///sauvegarde toute la partie dans un fichier de sauvegarde
-void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Ancre_b ancre_b, Joueur joueur, int num);
+void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, std::list<Build *>& ancre_b, Joueur& joueur, int num);
 
 ///remet tout à zero
-void reset(Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY]);
+void reset(Ancre& ancre, std::list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY]);
 
 
 #endif // LOAD_H_INCLUDED

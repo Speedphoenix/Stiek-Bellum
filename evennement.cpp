@@ -9,10 +9,12 @@
 ///faire le zoom vers la souris et non pas au centre de l'ecran
 
 
+using namespace std;
+
 //crée une nouvelle unité et l'ajoute à la liste chainée
 void add_unit(Ancre *ancre, int type, int priority, int x, int y, Build *bat)
 {
-    Unit *rep = malloc(sizeof(Unit));
+    Unit *rep = new Unit();
 
     rep->x = x;
     rep->y = y;
@@ -85,8 +87,8 @@ void add_unit(Ancre *ancre, int type, int priority, int x, int y, Build *bat)
     }
 
     //on initialise les temps pour l'attaque et l'animation
-    getTime(&rep->since_a);
-    getTime(&rep->since_w);
+    getTime(rep->since_a);
+    getTime(rep->since_w);
 
     ajout_debut(ancre, rep); //on ajoute l'unité à la liste chainée
 }
@@ -94,7 +96,7 @@ void add_unit(Ancre *ancre, int type, int priority, int x, int y, Build *bat)
 //crée un nouveau batiment et renvoie son pointeur
 Build *nouv_batiment(int x, int y, int w, int h, int side, int state)
 {
-    Build *rep = malloc(sizeof(Build));
+    Build *rep = new Build();
 
     rep->x = x;
     rep->y = y;
@@ -116,10 +118,10 @@ Build *nouv_batiment(int x, int y, int w, int h, int side, int state)
 }
 
 //verifie si on peut ajouter le batiment à ces coordonnées et le place et l'ajoute à la liste chainée (renvoie 0 sinon)
-int add_bat(Ancre_b *ancre_b, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int state, int type)
+bool add_bat(list<Build *>& ancre_b, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int state, int type)
 {
     int i, j;
-    int rep = 0;
+    bool rep = false;
     Build *nouv;
 
     if (!carte[x][y].block && !trouve(ancre, x*COTE + COTE/2, y*COTE + COTE/2, NULL, NEUTR) &&         // si ce n'est pas une case pleine ou s'il n'y a pas d'unité là...
@@ -127,7 +129,7 @@ int add_bat(Ancre_b *ancre_b, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x
         !carte[x][y+1].block && !trouve(ancre, x*COTE + COTE/2, (y+1)*COTE + COTE/2, NULL, NEUTR) &&   //pourrait être fait en mode DRY mais bon
         !carte[x+1][y+1].block && !trouve(ancre, (x+1)*COTE + COTE/2, (y+1)*COTE + COTE/2, NULL, NEUTR))
     {
-        rep = 1; //y'a de la place/ça a marché
+        rep = true; //y'a de la place/ça a marché
         nouv = nouv_batiment(x, y, 2, 2, ALLY, state);
 
         for (i=0;i<2;i++)
@@ -143,7 +145,7 @@ int add_bat(Ancre_b *ancre_b, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x
                 carte[x+i][y+j].fleur = 0;
             }
         }
-        ajout_debut_b(ancre_b, nouv); //on ajoute le batiment à la liste chainée
+        ancre_b.push_back(nouv); //on ajoute le batiment à la liste chainée
 
         //on éclaire la zone
         eclaire(carte, (x+1)*COTE, (y+1)*COTE, 4);
@@ -153,10 +155,10 @@ int add_bat(Ancre_b *ancre_b, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x
 }
 
 //detruit le batiment
-void destroy_build(Ancre_b *ancre, Maillon_b *del, Tile carte[MAPSIZEX][MAPSIZEY])
+void destroy_build(list<Build *>& ancre, list<Build *>::iterator& del, Tile carte[MAPSIZEX][MAPSIZEY])
 {
     int i, j;
-    Build *build = del->batiment;
+    Build *build = *del;
     int x = build->x;
     int y = build->y;
 
@@ -171,14 +173,16 @@ void destroy_build(Ancre_b *ancre, Maillon_b *del, Tile carte[MAPSIZEX][MAPSIZEY
             carte[x+i][y+j].erige = NULL;
         }
     }
+
+    delete build;
     //on l'enleve de la liste chainée
-    supprimer_b(ancre, del, 1);
+    ancre.erase(del);
 }
 
 //prend les actions du joueur (action avec la souris)
-void action(Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY])
+void action(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY])
 {
-    Maillon *inter1 = joueur->selection.debut, *inter2;
+    Maillon *inter1 = joueur.selection.debut, *inter2;
 
     int valx = 0, valy = 0, val = 0;
 
@@ -187,111 +191,111 @@ void action(Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX]
 
 
     if (key[KEY_P]) //s'il faut mettre le menu pause
-        joueur->pause = 1;
+        joueur.pause = 1;
 
     DEB("1-0-0")
     //on enleve toutes les unités qui auraient pu mourrir de la selection
-    if (joueur->act==SELECTED || joueur->act==PLACE_BUILD)
+    if (joueur.act==SELECTED || joueur.act==PLACE_BUILD)
     {
         while(inter1!=NULL) //on regarde chaque unité de la selection
         {
             inter2 = inter1->next; //on prend maintenant le maillon suivant (si jamais on a suprimé le courant après)
 
             if (inter1->unite->state == DEAD)
-                supprimer(&joueur->selection, inter1, 0); //on l'enlève de la selection
+                supprimer(&joueur.selection, inter1, 0); //on l'enlève de la selection
             else if (inter1->unite->prod) //si il reste une unité qui peut construire un batiment
                 val++;
 
             inter1 = inter2;
         }
 
-        if (joueur->selection.debut==NULL) //si la séléction s'est vidée entre temps
+        if (joueur.selection.debut==NULL) //si la séléction s'est vidée entre temps
         {
-            joueur->act = RIEN;
-            joueur->type = 0;
+            joueur.act = RIEN;
+            joueur.type = 0;
         }
-        else if (joueur->act==PLACE_BUILD && !val) //si la selection ne s'est pas vidée mais que les constructeurs sont morts, on ne peut plus placer le batiment)
+        else if (joueur.act==PLACE_BUILD && !val) //si la selection ne s'est pas vidée mais que les constructeurs sont morts, on ne peut plus placer le batiment)
         {
-            joueur->act = SELECTED;
-            joueur->type = 0;
+            joueur.act = SELECTED;
+            joueur.type = 0;
         }
 
     }
     DEB("1-0-1")
-    val = mouse_z -joueur->prevwheel; //on prend combien le joueur a tourné la roulette de la souris entre temps
+    val = mouse_z -joueur.prevwheel; //on prend combien le joueur a tourné la roulette de la souris entre temps
 
     if (abs(val)>=3) //si ça dépasse la limite pour zoom/dezoom
     {
         if (val>=3) //s'il faut zoomer (positif)
         {
-            if (joueur->xecran>MINECRANX) //si on est pas aux limites de (dé)zoom
-                joueur->xecran-=2;  //de combien on incrémente le zoom
-            if (joueur->yecran>MINECRANY)
-                joueur->yecran--;
+            if (joueur.xecran>MINECRANX) //si on est pas aux limites de (dé)zoom
+                joueur.xecran-=2;  //de combien on incrémente le zoom
+            if (joueur.yecran>MINECRANY)
+                joueur.yecran--;
         }
         else //s'il faut dézoomer (négatif)
         {
-            if (joueur->xecran<MAXECRANX)
-                joueur->xecran+=2;
-            if (joueur->yecran<MAXECRANY)
-                joueur->yecran++;
+            if (joueur.xecran<MAXECRANX)
+                joueur.xecran+=2;
+            if (joueur.yecran<MAXECRANY)
+                joueur.yecran++;
         }
 
-        joueur->change = 1;
-        joueur->chang_taill = 1;
-        joueur->prevwheel = mouse_z; //on garde la nouvelle valeur de la roulette de la souris
+        joueur.change = 1;
+        joueur.chang_taill = 1;
+        joueur.prevwheel = mouse_z; //on garde la nouvelle valeur de la roulette de la souris
     }
     DEB("1-0-2")
     //s'il faut déplacer la caméra: on check si la souris est aux bords de l'écran et que la caméra n'est pas au bord de la map
-    if (((x<=MOVELIMIT && joueur->xcamera>0) || (x>=(XSCREEN - MOVELIMIT) && (joueur->xcamera<(MAPSIZEX - joueur->xecran)*COTE)) ||
-        (y<=MOVELIMIT && joueur->ycamera>0) || (y>=(YSCREEN - MOVELIMIT) && (joueur->ycamera<(MAPSIZEY - joueur->yecran)*COTE))))
+    if (((x<=MOVELIMIT && joueur.xcamera>0) || (x>=(XSCREEN - MOVELIMIT) && (joueur.xcamera<(MAPSIZEX - joueur.xecran)*COTE)) ||
+        (y<=MOVELIMIT && joueur.ycamera>0) || (y>=(YSCREEN - MOVELIMIT) && (joueur.ycamera<(MAPSIZEY - joueur.yecran)*COTE))))
     {
-        if (x<=MOVELIMIT && joueur->xcamera>0) //en abscisse
+        if (x<=MOVELIMIT && joueur.xcamera>0) //en abscisse
             valx = x - MOVELIMIT;               //negatif
         else if (x>=(XSCREEN - MOVELIMIT))
             valx = MOVELIMIT - (XSCREEN-x);     //positif
 
-        if (y<=MOVELIMIT && joueur->ycamera>0) //en ordonnée
+        if (y<=MOVELIMIT && joueur.ycamera>0) //en ordonnée
             valy = y - MOVELIMIT;               //negatif
         else if (y>=(YSCREEN - MOVELIMIT))
             valy = MOVELIMIT - (YSCREEN-y);     //positif
 
-        joueur->xcamera+=valx; //on bouge la caméra
-        joueur->ycamera+=valy;
+        joueur.xcamera+=valx; //on bouge la caméra
+        joueur.ycamera+=valy;
 
-        joueur->change = 1;
+        joueur.change = 1;
 
-        if (joueur->xcamera<0)
-            joueur->xcamera = 0;
-        else if (joueur->xcamera>(MAPSIZEX - joueur->xecran)*COTE)
-            joueur->xcamera = (MAPSIZEX-joueur->xecran)*COTE;
+        if (joueur.xcamera<0)
+            joueur.xcamera = 0;
+        else if (joueur.xcamera>(MAPSIZEX - joueur.xecran)*COTE)
+            joueur.xcamera = (MAPSIZEX-joueur.xecran)*COTE;
                                                     //si on a dépassé l'ecran avec la caméra
-        if (joueur->ycamera<0)
-            joueur->ycamera = 0;
-        else if (joueur->ycamera>(MAPSIZEY - joueur->yecran)*COTE)
-            joueur->ycamera = (MAPSIZEY-joueur->yecran)*COTE;
+        if (joueur.ycamera<0)
+            joueur.ycamera = 0;
+        else if (joueur.ycamera>(MAPSIZEY - joueur.yecran)*COTE)
+            joueur.ycamera = (MAPSIZEY-joueur.yecran)*COTE;
     }
     DEB("1-0-3")
     //on appelle les programmes d'actions "actifs"
-    if (y<=(ECRANY*COTE) || joueur->act==SELECTING) //on ne veut pas interrompre la selection si on va sur l'ui
-        action_ecran(*ancre, ancre_b, joueur, carte, x, y); //action avec la souris sur l'écran de jeu
+    if (y<=(ECRANY*COTE) || joueur.act==SELECTING) //on ne veut pas interrompre la selection si on va sur l'ui
+        action_ecran(ancre, ancre_b, joueur, carte, x, y); //action avec la souris sur l'écran de jeu
     else if (y<(YSCREEN-MOVELIMIT) && x>MOVELIMIT)
         action_ui(ancre, joueur, carte, x, y);      //action avec la souris en bas de l'écran, dans l'UI
 }
 
 //prend les actions du joueur sur le terrain de jeu (la map)
-void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
+void action_ecran(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
 {
     Maillon *inter = NULL;
     Build *bat;
     TIMESTRUCT now;
     double elapsed;
 
-    x = x*((float)joueur->xecran/ECRANX);
-    y = y*((float)joueur->yecran/ECRANY);
+    x = x*((float)joueur.xecran/ECRANX);
+    y = y*((float)joueur.yecran/ECRANY);
 
-    x += joueur->xcamera;
-    y += joueur->ycamera; //pour avoir les coordonnées dans le referrentiel de la map
+    x += joueur.xcamera;
+    y += joueur.ycamera; //pour avoir les coordonnées dans le referrentiel de la map
 
 #if TEST
         fprintf(stderr, "%d %d\n", DIV(x), DIV(y)); ///POUR TESTER, pour voir sur quelle tuile est la souris
@@ -301,7 +305,7 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
 
     if (mouse_b & 2) //dans le cas click droit
     {
-        switch (joueur->act) //qu'elle action le joueur etait en train de faire
+        switch (joueur.act) //qu'elle action le joueur etait en train de faire
         {
             default:
             case SELECT_BUILD:  //il se passe rien...
@@ -310,15 +314,15 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
         break;
 
             case SELECTING:     //annule l'action en cours
-            joueur->act = RIEN;
-            joueur->type = 0;
+            joueur.act = RIEN;
+            joueur.type = 0;
         break;
 
             case SELECTED:      //on donne l'ordre de se déplacer
             DEB("1-1-1")
-            if (joueur->clic_prec!=2) //que si le joueur n'avait pas déjà clique droit (les unités ne suivent pas la souris)
+            if (joueur.clic_prec!=2) //que si le joueur n'avait pas déjà clique droit (les unités ne suivent pas la souris)
             {
-                inter = joueur->selection.debut;
+                inter = joueur.selection.debut;
 
                 while (inter!=NULL) //on prend chaque unité de la selection
                 {
@@ -339,33 +343,33 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
         break;
 
             case PLACE_BUILD:   //revenir à la selection des unités
-            joueur->type = 0;
-            joueur->act = SELECTED;
+            joueur.type = 0;
+            joueur.act = SELECTED;
         break;
         }
 
         //on enregistre le dernier click
-        joueur->clic_prec = 2;
+        joueur.clic_prec = 2;
     }
     else if (mouse_b & 1) //clique gauche
     {
-        switch (joueur->act)
+        switch (joueur.act)
         {
             case SELECTED:
-            if (joueur->clic_prec) //si c'est c'est pas que le joueur a appuyé trop longtemps
+            if (joueur.clic_prec) //si c'est c'est pas que le joueur a appuyé trop longtemps
                 break;
             else
-                libere(&joueur->selection, 0); //on libere la selection sans detruire les unités
+                libere(&joueur.selection, 0); //on libere la selection sans detruire les unités
 
             default:            //on prend la selection
             case SELECT_BUILD:
             case RIEN:
-            if (joueur->clic_prec!=1) //si par example on a commencé à cliquer sur l'ui...
+            if (joueur.clic_prec!=1) //si par example on a commencé à cliquer sur l'ui...
             {
-                joueur->xprev = x; //on garde les coordonnées initiales de la selection
-                joueur->yprev = y;
+                joueur.xprev = x; //on garde les coordonnées initiales de la selection
+                joueur.yprev = y;
 
-                joueur->act = SELECTING; //on passe en mode selection
+                joueur.act = SELECTING; //on passe en mode selection
             }
 
         break;
@@ -375,17 +379,17 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
 
             //on voit si on peut valider l'action ou non + place le batiment
             case PLACE_BUILD:
-            if (!joueur->clic_prec) //que si le joueur n'était pas déjà en train de cliquer
+            if (!joueur.clic_prec) //que si le joueur n'était pas déjà en train de cliquer
             {
                 DEB("1-1-2")
-                if (add_bat(ancre_b, ancre, carte, DIV(x), DIV(y), PROGRESS, joueur->type)) //si le batiment peut être placé
+                if (add_bat(ancre_b, ancre, carte, DIV(x), DIV(y), PROGRESS, joueur.type)) //si le batiment peut être placé
                 {
-                    joueur->bois -= joueur->xprev;
-                    joueur->marbre -= joueur->yprev; //on fait la transaction
-                    joueur->act = SELECTED;          //on revient à l'état de selection
-                    joueur->change = 1;
+                    joueur.bois -= joueur.xprev;
+                    joueur.marbre -= joueur.yprev; //on fait la transaction
+                    joueur.act = SELECTED;          //on revient à l'état de selection
+                    joueur.change = 1;
 
-                    inter = joueur->selection.debut; //on deplace tous les paysants dans cette direction
+                    inter = joueur.selection.debut; //on deplace tous les paysants dans cette direction
                     while (inter!=NULL)
                     {
                         if (inter->unite->priority<=ORDRE && inter->unite->prod)
@@ -406,11 +410,11 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
         }
 
         // on enregistre le cick
-        joueur->clic_prec = 1;
+        joueur.clic_prec = 1;
     }
     else //si aucun bouton de la souris n'est appuyé
     {
-        switch (joueur->act)
+        switch (joueur.act)
         {
             default:
             case SELECTED:      //il se passe rien...
@@ -423,36 +427,36 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
             DEB("1-1-3")
                 //s'il faut prendre un batiment
             bat = carte[DIV(x)][DIV(y)].erige;
-            if (DIV(x)==DIV(joueur->xprev) && DIV(y)==DIV(joueur->yprev) && //si la souris n'a pas changé de case
+            if (DIV(x)==DIV(joueur.xprev) && DIV(y)==DIV(joueur.yprev) && //si la souris n'a pas changé de case
                 (bat && (bat->hp==bat->hp_max && bat->side==ALLY)))         //s'il y a un batiment allié à utiliser
             {                                                               //et si ce batiment est utilisable
-                joueur->xprev = bat->x; //on prend les coordonnées du batiment
-                joueur->yprev = bat->y;
-                joueur->act = SELECT_BUILD; //on passe en mode batiment selectionné
-                joueur->type = (int)(carte[DIV(x)][DIV(y)].position/4); //on garde le type du batiment (mairie ou caserne)
+                joueur.xprev = bat->x; //on prend les coordonnées du batiment
+                joueur.yprev = bat->y;
+                joueur.act = SELECT_BUILD; //on passe en mode batiment selectionné
+                joueur.type = (int)(carte[DIV(x)][DIV(y)].position/4); //on garde le type du batiment (mairie ou caserne)
             }
             else
             {
-                getTime(&now);
-                elapsed = getSec(&joueur->last_clic, &now);
+                getTime(now);
+                elapsed = getSec(joueur.last_clic, now);
 
                 if (elapsed<=0.5) //si y'a double clic
                 {
-                    selec(&joueur->selection, ancre, joueur->xcamera, joueur->ycamera, joueur->xcamera + COTE*joueur->xecran, joueur->ycamera + COTE*joueur->yecran);
+                    selec(&joueur.selection, ancre, joueur.xcamera, joueur.ycamera, joueur.xcamera + COTE*joueur.xecran, joueur.ycamera + COTE*joueur.yecran);
                 }
                 else
                 {
                     //on selectione les unités presentes dans le carré de selection
-                    selec(&joueur->selection, ancre, joueur->xprev, joueur->yprev, x, y);
+                    selec(&joueur.selection, ancre, joueur.xprev, joueur.yprev, x, y);
                 }
 
-                if (joueur->selection.debut!=NULL) //si la selection n'est pas vide
+                if (joueur.selection.debut!=NULL) //si la selection n'est pas vide
                 {
-                    joueur->act = SELECTED;
+                    joueur.act = SELECTED;
                 }
                 else //si elle est vide
                 {
-                    joueur->act = RIEN;
+                    joueur.act = RIEN;
                 }
             }
 
@@ -462,16 +466,16 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
         break;
         }
 
-        if (joueur->clic_prec==1)
-            getTime(&joueur->last_clic);
+        if (joueur.clic_prec==1)
+            getTime(joueur.last_clic);
 
-        joueur->clic_prec = 0; //on garde le fait que le joueur n'a pas cliqué
+        joueur.clic_prec = 0; //on garde le fait que le joueur n'a pas cliqué
     }
     DEB("1-1-4")
 }
 
 //prend les actions du joueur sur l'UI
-void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
+void action_ui(Ancre& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
 {
     Maillon *inter = NULL;
     Build *bat;
@@ -488,31 +492,31 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
         if (mouse_b & 1) //si clique gauche
         {
             DEB("1-2-2")
-            xval = x - (joueur->xecran/2); //on fait que la souris soit au centre du recltangle de l'écran sur la minimap
-            yval = y - (joueur->yecran/2);
+            xval = x - (joueur.xecran/2); //on fait que la souris soit au centre du recltangle de l'écran sur la minimap
+            yval = y - (joueur.yecran/2);
 
             if (xval<0)
                 xval = 0;
-            else if (xval>(MAPSIZEX - joueur->xecran))
-                xval = MAPSIZEX - joueur->xecran;
+            else if (xval>(MAPSIZEX - joueur.xecran))
+                xval = MAPSIZEX - joueur.xecran;
                                     //si l'écran sortirait de la map
             if (yval<0)
                 yval = 0;
-            else if (yval>(MAPSIZEY - joueur->yecran))
-                yval = MAPSIZEY - joueur->yecran;
+            else if (yval>(MAPSIZEY - joueur.yecran))
+                yval = MAPSIZEY - joueur.yecran;
 
-            joueur->xcamera = xval * COTE; //on prend les nouvelles valeurs pour les coordonnées de la caméra
-            joueur->ycamera = yval * COTE;
-            joueur->change = 1;
+            joueur.xcamera = xval * COTE; //on prend les nouvelles valeurs pour les coordonnées de la caméra
+            joueur.ycamera = yval * COTE;
+            joueur.change = 1;
 
         }
         if (mouse_b & 2) //clique gauche
         {
             DEB("1-2-3")
-            switch (joueur->act)
+            switch (joueur.act)
             {
                 case SELECTED: //on deplace les unitées sur la minimap
-                inter = joueur->selection.debut;
+                inter = joueur.selection.debut;
                 while (inter!=NULL)
                 {
                     if (inter->unite->priority<=ORDRE) //si on a la priorité
@@ -541,16 +545,16 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
         if (mouse_b & 1) //clique gauche
         {
             DEB("1-2-5")
-            x-=SEPARE; //on se base dans le rectangle du menu
+            x -= SEPARE; //on se base dans le rectangle du menu
 
-            if (joueur->clic_prec!=1) //si on est bien sur front descendant
+            if (joueur.clic_prec!=1) //si on est bien sur front descendant
             {
-                switch (joueur->act)
+                switch (joueur.act)
                 {
                     case SELECTED: //on a déjà selectionné des unité
                     p = 0;
 
-                    inter = joueur->selection.debut;
+                    inter = joueur.selection.debut;
                     while (inter!=NULL)
                     {
                         if (inter->unite->type==PEASANT) //s'il y a des constructeurs dans la selection
@@ -568,22 +572,22 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
                             switch (clk)
                             {
                                 case 1: //construire une mairie
-                                if (joueur->bois>=WOOD_MAINB && joueur->marbre>=ROCK_MAINB)
+                                if (joueur.bois>=WOOD_MAINB && joueur.marbre>=ROCK_MAINB)
                                 {
-                                    joueur->type = MAIRIE;
-                                    joueur->xprev = WOOD_MAINB; //on garde les valeurs de ressource à utiliser
-                                    joueur->yprev = ROCK_MAINB; //on fera la transaction quand on place le batiment
-                                    joueur->act = PLACE_BUILD;
+                                    joueur.type = MAIRIE;
+                                    joueur.xprev = WOOD_MAINB; //on garde les valeurs de ressource à utiliser
+                                    joueur.yprev = ROCK_MAINB; //on fera la transaction quand on place le batiment
+                                    joueur.act = PLACE_BUILD;
                                 }
                             break;
 
                                 case 2: //construire une caserne
-                                if (joueur->bois>=WOOD_BARACKS && joueur->marbre>=ROCK_BARACKS)
+                                if (joueur.bois>=WOOD_BARACKS && joueur.marbre>=ROCK_BARACKS)
                                 {
-                                    joueur->type = CASERNE;
-                                    joueur->xprev = WOOD_BARACKS; //on garde les valeurs de ressource à utiliser
-                                    joueur->yprev = ROCK_BARACKS; //on fera la transaction quand on place le batiment
-                                    joueur->act = PLACE_BUILD;
+                                    joueur.type = CASERNE;
+                                    joueur.xprev = WOOD_BARACKS; //on garde les valeurs de ressource à utiliser
+                                    joueur.yprev = ROCK_BARACKS; //on fera la transaction quand on place le batiment
+                                    joueur.act = PLACE_BUILD;
                                 }
                             break;
 
@@ -601,11 +605,11 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
                     if (clk) //si la souris est sur une icone à cliquer
                     {
                         p = 0;
-                        bat = carte[joueur->xprev][joueur->yprev].erige; //on prend le pointeur du batiment selectionné
+                        bat = carte[joueur.xprev][joueur.yprev].erige; //on prend le pointeur du batiment selectionné
 
                         if (bat->curr_queue<QUEUE_MAX) //s'il y a de la place dans la queue du batiment
                         {
-                            switch (joueur->type)
+                            switch (joueur.type)
                             {                  ///Pourrait être fait de manière plus propre mais bon....
                                 case MAIRIE:
                                 if (clk==1)
@@ -631,14 +635,14 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
                             break;
                             }
 
-                            if (p && (joueur->bois>=bois && joueur->marbre>=pierre)) //si on a assez des ressources necessaires
+                            if (p && (joueur.bois>=bois && joueur.marbre>=pierre)) //si on a assez des ressources necessaires
                             {
-                                joueur->bois-=bois;
-                                joueur->marbre-=pierre; //on paye
+                                joueur.bois-=bois;
+                                joueur.marbre-=pierre; //on paye
 
                                 if (bat->curr_queue==0) //si aucune unité n'est en cours de formation
                                 {
-                                    getTime(&bat->start); //on initialise le temps de formation
+                                    getTime(bat->start); //on initialise le temps de formation
                                 }
 
                                 bat->unit_queue[bat->curr_queue] = uni; //on forme l'unité
@@ -654,23 +658,23 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
             }
         }
     }
-    else if (joueur->clic_prec==1 && !mouse_b&1 && x>=(SEPARE-PAUSE_S) && x<SEPARE && y<PAUSE_S && y>=0) //si on lache le click souris sur le bouton pause
+    else if (joueur.clic_prec==1 && !mouse_b&1 && x>=(SEPARE-PAUSE_S) && x<SEPARE && y<PAUSE_S && y>=0) //si on lache le click souris sur le bouton pause
     {
-        joueur->pause = 1;
+        joueur.pause = 1;
     }
 
     //on enregistre les clicks
     if (mouse_b & 1)
-        joueur->clic_prec = 1;
+        joueur.clic_prec = 1;
     else if (mouse_b & 2)
-        joueur->clic_prec = 2;
+        joueur.clic_prec = 2;
     else
-        joueur->clic_prec = 0;
+        joueur.clic_prec = 0;
 
     if (PLACE_BUILD && (mouse_b & 2))
     {
-        joueur->act = SELECTED;
-        joueur->type = 0;
+        joueur.act = SELECTED;
+        joueur.type = 0;
     }
     DEB("1-2-6")
 }
@@ -696,7 +700,7 @@ int unit_menu_click(int x, int y)
 
 
 //renvoie l'unité présente à ces coordonnées (NULL s'il n'y en a pas)
-Unit *trouve(Ancre ancre, int x, int y, Unit *exclu, int side_excl)
+Unit *trouve(Ancre& ancre, int x, int y, Unit *exclu, int side_excl)
 {
     Maillon *maill = ancre.debut;
     Unit *rep = NULL;
@@ -721,7 +725,7 @@ Unit *trouve(Ancre ancre, int x, int y, Unit *exclu, int side_excl)
 }
 
 //met dans l'ancre dest toutes les unités à l'interieur du rectangle de selection
-void selec(Ancre *dest, Ancre ancre, int x1, int y1, int x2, int y2)
+void selec(Ancre *dest, Ancre& ancre, int x1, int y1, int x2, int y2)
 {
     Maillon *maill = ancre.debut;
     int ix, iy, siz;
@@ -786,19 +790,19 @@ int if_dist(int x1, int y1, int x2, int y2, int dist)
 }
 
 //pour voir l'optimisation, motif debug
-void temps_passe(TIMESTRUCT *prev)
+void temps_passe(TIMESTRUCT& prev)
 {
     if (HOW_LONG)
     {
         TIMESTRUCT nouveau;
         int elapsed; //elapsed est en milisec
-        getTime(&nouveau);
+        getTime(nouveau);
 
         //le temps passé en milisec
-        elapsed = getMilisec(prev, &nouveau);
+        elapsed = getMilisec(prev, nouveau);
 
         fprintf(stderr, "  : %d\n\n", elapsed);
-        *prev = nouveau;
+        prev = nouveau;
     }
 
 }
