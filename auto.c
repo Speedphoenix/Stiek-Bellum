@@ -1702,7 +1702,7 @@ void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueu
                     if (unite->side!=inter->side)
                     {
                         b = sqrt(pow(unite->x-inter->x, 2) + pow(unite->y-inter->y, 2)); //il faut ajouter +unite->cote/2 à chaque fois si on fait des unités de taille differente
-                            //faudrai enlever sqrt...
+                            //faudrait enlever sqrt...
                         if (b<dist)
                         {
                             dist = b;
@@ -1783,7 +1783,8 @@ void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueu
 
                         bat=maill_b->batiment;
                         if(bat->side!=unite->side)
-                        {   batfound=1;
+                        {
+                            batfound=1;
                             xbatdest=bat->x*COTE;
                             ybatdest=bat->y*COTE;
                             dist_cur=sqrt(pow(xbatdest-unite->x, 2) + pow(ybatdest-unite->y, 2));

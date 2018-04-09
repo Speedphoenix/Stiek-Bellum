@@ -8,3 +8,6 @@ bin/
 debug*.txt
 *.cscope_file_list
 *.save
+
+doxygen/
+
