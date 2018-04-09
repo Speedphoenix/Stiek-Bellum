@@ -969,7 +969,7 @@ void path(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Unit *unite)
                             (carte[x][y+j].block/* || trouve(ancre, x*COTE+COTE/2, (y+j)*COTE+COTE/2, unite, NEUTR)*/))))
                         {//printf("0\n");
 
-                            g = step->g + (i && j)?1.4:1;
+                            g = step->g + ((i && j)?1.4:1.0);
                             h = 1.4*MIN(ABS((x+i)-xf), ABS((y+j)-yf)) + ABS(ABS((x+i)-xf) - ABS((y+j)-yf));
 
                             if ((1.4*MIN(ABS((x+i)-xs), ABS((y+j)-ys)) + ABS(ABS((x+i)-xs) - ABS((y+j)-ys)))>2*unite->vision)
@@ -1260,6 +1260,9 @@ void mine(Tile carte[MAPSIZEX][MAPSIZEY], Unit *unite, Joueur *joueur)
                     if (carte[x][y].res<0)              //si on a pris plus que la quantité de ressources restantes
                         joueur->marbre+=carte[x][y].res;//on enleve le surplus
                 break;
+
+                    default:
+                break;
                 }
 
                 if (carte[x][y].res<=0) //on enleve l'arbre / rocher s'il n'y a pllus de ressourcces
@@ -1324,7 +1327,7 @@ void enlev(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
         case TREE:
         switch (carte[x][y].position)
         {
-            case 0:
+            case 0: //si c'est la partie basse d'un grand arbre
             case 2:
             if (y!=0)
             {       //si c'est un arbre sur deux cases et qu'il faut detruire aussi les feuilles
@@ -1335,11 +1338,14 @@ void enlev(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
                     carte[x][y-1].block = 0;
                 }
             }
-            case 4:
+            case 4: //petit arbre
             carte[x][y].type = GRASS;
             carte[x][y].position = P_HERBE;
             carte[x][y].res = 0;
             carte[x][y].block = 0;
+        break;
+
+            default:
         break;
         }
     break;
@@ -1349,6 +1355,9 @@ void enlev(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
         carte[x][y].position = P_SABLE;
         carte[x][y].res = 0;
         carte[x][y].block = 0;
+    break;
+
+        default:
     break;
     }
 }
@@ -1380,6 +1389,7 @@ int if_elapsed(Unit *unite, int type)
     {
         switch (type) //on met le nouveau temps
         {
+            default:
             case ANIMATION:
             unite->since_a = inter;
         break;
@@ -1649,8 +1659,8 @@ void automat(Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueu
     Unit *inter;
     Build* bat;
     Tile tuile;
-    int dist_prev=1000000;
-    int dist_cur=0;
+    int dist_prev = 1000000; ///À remplacer par valeur max int
+    int dist_cur = 0;
     int xgo, ygo;
     int batfound;
 

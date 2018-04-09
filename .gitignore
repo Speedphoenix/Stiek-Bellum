@@ -5,6 +5,8 @@
 *.layout
 obj/
 bin/
+*/bin/
+*/obj/
 debug*.txt
 *.cscope_file_list
 *.save

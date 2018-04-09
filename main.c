@@ -112,7 +112,7 @@ int main()
         DEB("0-4")
 
         //on remet les valeurs aux valeurs initiales (discutablement inutile)
-        reset(&ancre, &ancre_b, &joueur, carte, &sprites);
+        reset(&ancre, &ancre_b, &joueur, carte);
 
         DEB("0-5")
 
@@ -158,8 +158,9 @@ int main()
             else if (end==-1)
             {
                 DEB("8-0")
-                switch (joueur.langue)
+                switch (joueur.langue) ///À CHANGER!!!
                 {
+                    default:
                     case ENGLISH:
                     allegro_message("You lost!!"); ///À CHANGER
                 break;
@@ -180,12 +181,13 @@ int main()
             if (TEST && key[KEY_ESC]) //on garede la partie dans le deuxième fichier de sauvegarde (pour tester)
                 save_game(carte, ancre, ancre_b, joueur, 2);
             DEB("8-2")
-            reset(&ancre, &ancre_b, &joueur, carte, &sprites);
+            reset(&ancre, &ancre_b, &joueur, carte);
             DEB("8-3")
         }
         else
         {
-            allegro_message((joueur.langue==ENGLISH)?"Good bye":(joueur.langue==FRANCAIS)?"Au revoir":"Arrivederci"); ///ÀCHANGER
+            //exit message
+            //allegro_message((joueur.langue==ENGLISH)?"Good bye":(joueur.langue==FRANCAIS)?"Au revoir":"Arrivederci"); ///ÀCHANGER
         }
 
     //on revient au menu
@@ -226,7 +228,7 @@ void attente(TIMESTRUCT *prev)
     elapsed = getMilisec(prev, &nouveau);
 
     if (HOW_LONG)
-        printf("total: %d\n\n", elapsed);
+        fprintf(stderr, "total: %d\n\n", elapsed);
 
     if (elapsed<LAPSE) //si le temps écoulé est inferieur à la temporisation
         rest(LAPSE-elapsed);

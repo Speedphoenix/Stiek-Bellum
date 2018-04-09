@@ -6,7 +6,7 @@
 BITMAP *draw_status(double HPmax, double HPcurrent, int type)
 {
     float bar_per_w;
-    int col;
+    int col, colVal;
     BITMAP *rep = create_bitmap(BAR_W, BAR_H);
 
     rectfill(rep,0,0,BAR_W, BAR_H, MAG);
@@ -16,18 +16,24 @@ BITMAP *draw_status(double HPmax, double HPcurrent, int type)
     if (bar_per_w>1)
         bar_per_w = 1;
 
+    colVal = (1-bar_per_w)*255;
+
     switch (type)
     {
         case BAT:
-        col = makecol((1-bar_per_w)*255, 0, bar_per_w * 255);
+        col = makecol(colVal, 0, bar_per_w * 255);
     break;
 
         case UNIT:
-        col = makecol((1-bar_per_w)*255, bar_per_w * 255,0);
+        col = makecol(colVal, bar_per_w * 255, 0);
     break;
 
         case TIME:
-        col = makecol((1-bar_per_w)*255, (1-bar_per_w)*255, (1-bar_per_w)*255);
+        col = makecol(colVal, colVal, colVal);
+    break;
+
+        default:
+        col = makecol(0, 0, 0);
     break;
     }
 
@@ -77,14 +83,15 @@ void draw_ui(BITMAP *dest, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites 
 
     draw_sprite(dest, sprites->c_bar, MAPWIDTH + MOVELIMIT, 0);//l'info d'un personage
 
+    //on affiche les icones des unités séléctionnées
     if (joueur.act==SELECTED || joueur.act==PLACE_BUILD)
     {
         inter = joueur.selection.debut;
         j = 0;
-        while (j<5 && inter!=NULL)
+        while (j<5 && inter!=NULL) //max 5 lignes
         {
             i = 0;
-            while (i<15 && inter!=NULL)
+            while (i<15 && inter!=NULL) //max 15 par ligne
             {
                 switch (inter->unite->type)
                 {
@@ -92,6 +99,7 @@ void draw_ui(BITMAP *dest, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites 
                     draw_sprite(dest, sprites->epee_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
                 break;
 
+                    default:
                     case PEASANT:
                     draw_sprite(dest, sprites->paysant_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
                 break;
@@ -107,6 +115,7 @@ void draw_ui(BITMAP *dest, Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites 
     {
         switch (joueur.type)
         {
+            default:
             case MAIRIE:
                 draw_sprite(dest, sprites->mairie_i, MAPWIDTH + MOVELIMIT + 25, 0);
         break;
@@ -145,12 +154,14 @@ BITMAP *minimap(Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur joueur, int 
     Maillon *inter = ancre.debut;
     int col, x, y;
 
+    //on dessine en fonction de la case
     for (i=0;i<MAPSIZEX;i++)
     {
         for (j=0;j<MAPSIZEY;j++)
         {
             switch (carte[i][j].type)
             {
+                default:
                 case GRASS:
                 switch (carte[i][j].position)
                 {
@@ -161,6 +172,7 @@ BITMAP *minimap(Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur joueur, int 
                     col = COL_BRIDGE;
                 break;
                     default:
+                    case P_SABLE:
                     col = COL_SAND;
                 break;
                 }
@@ -177,11 +189,11 @@ BITMAP *minimap(Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur joueur, int 
                 case TREE:
                 switch (carte[i][j].position)
                 {
-                    case 2:
-                    case 3:
+                    case 2: //conifere partie basse
+                    case 3: //conifere partie haute
                     col = COL_TREEP;
                 break;
-                    default:
+                    default: //le reste. Normalement que des feuillus
                     col = COL_TREEL;
                 break;
                 }
@@ -207,6 +219,7 @@ BITMAP *minimap(Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur joueur, int 
         }
     }
 
+    //on dessine les unités qu'il y a dessus
     while (inter!=NULL)
     {
         x = DIV(inter->unite->x);
@@ -222,6 +235,7 @@ BITMAP *minimap(Ancre ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur joueur, int 
             case SOLDIER:
             col = COL_SOLDIER;
         break;
+            default:
             case PEASANT:
             col = COL_PEASANT;
         break;
@@ -310,11 +324,12 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
     ymin = DIV(joueur->ycamera);
 
     xtaille = joueur->xecran; //x/y taille sont les "tailles de l'écran" en prenant en compte que l'éran ne tombe pas forcement pile sur une case
-    if (xmin!=(float)joueur->xcamera/COTE)
+    // si xcamera ne tombe pas sur un multiple de COTE
+    if (xmin*COTE!=joueur->xcamera)
         xtaille++;
 
     ytaille = joueur->yecran;
-    if (ymin!=(float)joueur->ycamera/COTE)
+    if (ymin*COTE!=joueur->ycamera)
         ytaille++;
 
     xo = -(joueur->xcamera%COTE);
@@ -359,8 +374,8 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
                     draw_sprite(sprites->prev, sprites->montagne[chaque.position], xo + i*COTE, yo + j*COTE);
                 break;
 
-                    case GRASS:
                     default:
+                    case GRASS:
                     draw_sprite(sprites->prev, sprites->herbe[chaque.position], xo + i*COTE, yo + j*COTE);
                 break;
 
@@ -458,6 +473,7 @@ void draw_screen(BITMAP *dest, Ancre ancre, Ancre_b ancre_b, Tile carte[MAPSIZEX
             {
                 switch (inter->type)
                 {
+                    default:
                     case PEASANT:
                     temp = sprites->peasant[inter->prec][inter->frame];
                 break;

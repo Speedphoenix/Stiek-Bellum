@@ -12,7 +12,7 @@
  */
 
 //ce sous programme sert à définir les différents parametres d'une tuile
-void set_tile(Tile *tile, char type, int x, int y)
+void set_tile(Tile *tile, char type)
 {
     int a;
 
@@ -27,12 +27,14 @@ void set_tile(Tile *tile, char type, int x, int y)
         tile->block = SOLID;
         switch (tile->position)
         {
-            case 0:
+            case 0: //si c'est la partie basse d'un arbre feuillu ou conifere
             case 2:
             tile->res = GRAND; //set les ressources
         break;
-            case 4:
+            case 4: //si c'est un petit arbre
             tile->res = PETIT;
+        break;
+            default:
         break;
         }
     break;
@@ -62,8 +64,8 @@ void set_tile(Tile *tile, char type, int x, int y)
         tile->res = 0;
     break;
 
-        case GRASS:
         default:
+        case GRASS:
         tile->block = VIDE; //il n'y a rien
         tile->res = 0;
 
@@ -109,7 +111,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, J
         for (i=0;i<MAPSIZEX;i++)
         {
             fscanf(fic, "%c%c", &carte[i][j].type, &a); //chaque tuile
-            set_tile(&carte[i][j], a, i, j);
+            set_tile(&carte[i][j], a);
         }
         fscanf(fic, "\n");
     }
@@ -376,7 +378,7 @@ void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Ancre_b ancre_b, Jou
 }
 
 //remet tout à zero
-void reset(Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], Sprites *sprites)
+void reset(Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY])
 {
     int i, j;
     for (i=0;i<MAPSIZEX;i++)
@@ -479,6 +481,9 @@ BITMAP *create_menu(Sprites sprites, int type)
         masked_blit(sprites.caserne_i, rep, 0, 0, 0, 2*BOX_H - ICON_S, ICON_S, ICON_S); //on met l'icone au bon endroit
 
 
+    break;
+
+        default:
     break;
     }
     destroy_bitmap(inter);

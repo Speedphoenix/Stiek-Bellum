@@ -195,7 +195,7 @@ typedef struct Sprites{
 
 
 ///ce sous programme sert à définir les différents parametres d'une tuile
-void set_tile(Tile *tile, char a, int x, int y);
+void set_tile(Tile *tile, char a);
 
 ///pour la création des petits menus dans l'UI
 BITMAP *create_menu(Sprites sprites, int type);
@@ -210,7 +210,7 @@ void load_game(Tile vide[MAPSIZEX][MAPSIZEY], Ancre *ancre, Ancre_b *ancre_b, Jo
 void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre ancre, Ancre_b ancre_b, Joueur joueur, int num);
 
 ///remet tout à zero
-void reset(Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], Sprites *sprites);
+void reset(Ancre *ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY]);
 
 
 #endif // LOAD_H_INCLUDED

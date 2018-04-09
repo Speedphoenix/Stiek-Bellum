@@ -185,6 +185,9 @@ void pause_game(Joueur *joueur, Sprites sprites, Tile carte[MAPSIZEX][MAPSIZEY],
             joueur->quit = 1;
             joueur->pause = 0;
         break;
+
+            default:
+        break;
         }
     }
 }
@@ -271,6 +274,7 @@ void end_game(Sprites sprites, Joueur *joueur)
     DEB("7-7")
     switch (joueur->langue)
     {
+        default:
         case ENGLISH:
         textprintf_ex(avant, font, 40, ECART_P+18 , COL_UI_ACC, -1, "HIGH SCORES");
     break;

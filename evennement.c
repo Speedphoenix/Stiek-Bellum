@@ -293,8 +293,9 @@ void action_ecran(Ancre ancre, Ancre_b *ancre_b, Joueur *joueur, Tile carte[MAPS
     x += joueur->xcamera;
     y += joueur->ycamera; //pour avoir les coordonnées dans le referrentiel de la map
 
-    if (TEST)
-        printf("%d %d\n", DIV(x), DIV(y)); ///POUR TESTER, pour voir sur quelle tuile est la souris
+#if TEST
+        fprintf(stderr, "%d %d\n", DIV(x), DIV(y)); ///POUR TESTER, pour voir sur quelle tuile est la souris
+#endif
 
     DEB("1-1-0")
 
@@ -526,7 +527,10 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
 
                     inter = inter->next;
                 }
-            break; //il n'y a pas d'autre cas pour l'instant
+            break;
+
+                default: //il n'y a pas d'autre cas pour l'instant
+            break;
             }
 
         }
@@ -582,6 +586,9 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
                                     joueur->act = PLACE_BUILD;
                                 }
                             break;
+
+                                default:
+                            break;
                             }
                         }
                     }
@@ -615,10 +622,12 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
                                 {
                                     bois = WOOD_SOLD;
                                     pierre = ROCK_SOLD;
-
                                     uni = SOLDIER;
                                     p = 1;
                                 }
+                            break;
+
+                                default:
                             break;
                             }
 
@@ -637,6 +646,9 @@ void action_ui(Ancre *ancre, Joueur *joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
                             }
                         }
                     }
+                break;
+
+                    default:
                 break;
                 }
             }
@@ -785,7 +797,7 @@ void temps_passe(TIMESTRUCT *prev)
         //le temps passé en milisec
         elapsed = getMilisec(prev, &nouveau);
 
-        printf("  : %d\n\n", elapsed);
+        fprintf(stderr, "  : %d\n\n", elapsed);
         *prev = nouveau;
     }
 
