@@ -104,7 +104,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
 
     //on fait le nom du fichier
     sprintf(fichier, NAME, SAUV, num, MAP);
-    DEB("0-10")
+
     //chargement de la map depuis un fichier
     fic = fopen(fichier, "r"); ERR_CHARG(fic)
 
@@ -119,7 +119,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
     }
     fclose(fic);
     //fin du chargement de la map
-    DEB("0-11")
+
 
     sprintf(fichier, NAME, SAUV, num, FOG);
 
@@ -145,7 +145,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
         fclose(fic);
     }
 
-    DEB("0-12")
+
     //assemblage de l'autre nom
     sprintf(fichier, NAME, SAUV, num, VALS);
 
@@ -154,7 +154,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
     //chargement des autres valeurs
 
     fscanf(fic, "%d\n", &siz);
-    DEB("0-13")
+
 
     for (i=0;i<siz;i++) //chaquee batiment
     {
@@ -190,7 +190,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
 
         ancre_b.push_back(bat); //on l'ajoute à la liste chainée
     }
-    DEB("0-14")
+
     fscanf(fic, "\n\n%d\n\n", &siz);
 
     for (i=0;i<siz;i++) //pour chaque unite
@@ -226,25 +226,25 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
 
         fscanf(fic, "\n");
     }
-    DEB("0-15")
+
     //les valeurs "globales" - -on remplit la structure joueur
     fscanf(fic, "\n\n\n");
 
     fscanf(fic, "%d %d %d %d\n", &joueur.xcamera, &joueur.ycamera, &joueur.xecran, &joueur.yecran);
     fscanf(fic, "%d %d %d %d\n", &joueur.bois, &joueur.marbre, &joueur.viande, &joueur.nend_b);
     fscanf(fic, "%d %d\n", &joueur.level, &joueur.map_num);
-    DEB("0-16")
+
     joueur.quit = 0;
     joueur.change = 1;
     joueur.chang_taill = 1;
-    DEB("0-17")
+
     joueur.prevwheel = mouse_z;
     joueur.act = RIEN;
     joueur.clic_prec = 0;
 
     getTime(joueur.last_spawn);
     getTime(joueur.last_clic);
-    DEB("0-18")
+
     fscanf(fic, "%d\n", &siz);
     getTime(joueur.debut);
     addSec(joueur.debut, (-1 * siz));
@@ -252,7 +252,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
     joueur.pause = 0;
 
     fscanf(fic, "\n");
-    DEB("0-19")
+
     fclose(fic);
 }
 

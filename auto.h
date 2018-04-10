@@ -6,14 +6,7 @@
 */
 
 #include "load.h"
-
-/* les types pour la fonction if_elapsed */
-#define ANIMATION 0
-#define WORK 1
-#define TRANSLATION 2
-
-/* le temps d'attente entre chaque image de l'animation */
-#define DELAY 0.1
+#include "defines.h"
 
 
 ///met à jour toutes les unités

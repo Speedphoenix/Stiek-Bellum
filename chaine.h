@@ -1,65 +1,10 @@
 #ifndef CHAINE_H_INCLUDED
 #define CHAINE_H_INCLUDED
 
-/*
-    UNE GRANDE PARTIE DES SOUS-PROGRAMMES DE CE FICHIER ONT ÉTÉ RECICLÉS DU MINI PROJET TP COLLECTION SUR DREAM THEATER (par Leonardo Jeanteur)
-    ce fichier contient les prototypes des sous programmes necessaires à la manipulation des maillons
-*/
 
-#include <iostream>
-#include <list>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <allegro.h>
-
-
-
+#include "defines.h"
 #include "timefuncs.h" //functions for measuring time N' stuff
 
-//#include "chaine_b.h" //est protégé contre les inclusions multiples
-
-
-/** erreur juste pour tester rapidement à droite et à gauche*/
-#define E(x) {std::cerr << std::endl << #x " : " << x << std::endl;}
-
-/* renvoie une erreur de chargement */
-#define ERR_CHARG(x) {if(!x){allegro_message("probleme de chargement " #x);exit(1);}}
-
-/** Pour initialiser une ancre */
-#define NANCRE {NULL,NULL}
-
-/*les valeurs de side/type de l'unité*/
-#define ENEMY 0
-#define ALLY 1
-#define NEUTR 2
-#define SOLDIER 1
-#define PEASANT 2
-#define MAIRIE 0
-#define CASERNE 1
-
-/*les valeurs d'état de l'unité*/
-#define MOVING 0
-#define ATTACK 1
-#define CHOP 1
-#define MINE 2
-#define DEAD 10
-
-/*les valeurs de priorité*/
-#define STAND 0     //si l'unité ne bouge pas
-#define AUTO 2      //si l'unité fait une action automatique
-#define GUARD 4     //si l'unite tient la garde (ira attaquer automatiquement, mais ne se déplace pas toute seule)
-#define TAUNT 6     //si l'unité attaque parcequ'elle est attaquée
-#define ORDRE 8     //si l'unité a reçu un ordre du joueur
-#define CONSTR 10   //si l'unité est en train de construire qcc
-
-/*valeurs d'éxemple de direction dans laquelle l'unité regarde...*/
-#define RIGHT 0
-#define LEFT 4 //on n'utilse que right et left...
-#define UP 2
-#define DOWN 6
 
 class Build;
 

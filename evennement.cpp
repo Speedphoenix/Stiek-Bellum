@@ -88,7 +88,7 @@ void action(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile ca
     if (key[KEY_P]) //s'il faut mettre le menu pause
         joueur.pause = 1;
 
-    DEB("1-0-0")
+
     //on enleve toutes les unités qui auraient pu mourrir de la selection
     if (joueur.act==SELECTED || joueur.act==PLACE_BUILD)
     {
@@ -115,7 +115,7 @@ void action(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile ca
         }
 
     }
-    DEB("1-0-1")
+
     val = mouse_z -joueur.prevwheel; //on prend combien le joueur a tourné la roulette de la souris entre temps
 
     if (abs(val)>=3) //si ça dépasse la limite pour zoom/dezoom
@@ -139,7 +139,7 @@ void action(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile ca
         joueur.chang_taill = 1;
         joueur.prevwheel = mouse_z; //on garde la nouvelle valeur de la roulette de la souris
     }
-    DEB("1-0-2")
+
     //s'il faut déplacer la caméra: on check si la souris est aux bords de l'écran et que la caméra n'est pas au bord de la map
     if (((x<=MOVELIMIT && joueur.xcamera>0) || (x>=(XSCREEN - MOVELIMIT) && (joueur.xcamera<(MAPSIZEX - joueur.xecran)*COTE)) ||
         (y<=MOVELIMIT && joueur.ycamera>0) || (y>=(YSCREEN - MOVELIMIT) && (joueur.ycamera<(MAPSIZEY - joueur.yecran)*COTE))))
@@ -169,7 +169,7 @@ void action(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile ca
         else if (joueur.ycamera>(MAPSIZEY - joueur.yecran)*COTE)
             joueur.ycamera = (MAPSIZEY-joueur.yecran)*COTE;
     }
-    DEB("1-0-3")
+
     //on appelle les programmes d'actions "actifs"
     if (y<=(ECRANY*COTE) || joueur.act==SELECTING) //on ne veut pas interrompre la selection si on va sur l'ui
         action_ecran(ancre, ancre_b, joueur, carte, x, y); //action avec la souris sur l'écran de jeu
@@ -190,11 +190,10 @@ void action_ecran(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, T
     x += joueur.xcamera;
     y += joueur.ycamera; //pour avoir les coordonnées dans le referrentiel de la map
 
-#if TEST
-        fprintf(stderr, "%d %d\n", DIV(x), DIV(y)); ///POUR TESTER, pour voir sur quelle tuile est la souris
+#if TEST ///POUR TESTER, pour voir sur quelle tuile est la souris
+    cerr << endl << DIV(x) << " " << DIV(y) << endl;
 #endif
 
-    DEB("1-1-0")
 
     if (mouse_b & 2) //dans le cas click droit
     {
@@ -212,7 +211,7 @@ void action_ecran(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, T
         break;
 
             case SELECTED:      //on donne l'ordre de se déplacer
-            DEB("1-1-1")
+
             if (joueur.clic_prec!=2) //que si le joueur n'avait pas déjà clique droit (les unités ne suivent pas la souris)
             {
                 for (auto& elem : joueur.selection)
@@ -271,7 +270,6 @@ void action_ecran(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, T
             case PLACE_BUILD:
             if (!joueur.clic_prec) //que si le joueur n'était pas déjà en train de cliquer
             {
-                DEB("1-1-2")
                 if (add_bat(ancre_b, ancre, carte, DIV(x), DIV(y), PROGRESS, joueur.type)) //si le batiment peut être placé
                 {
                     joueur.bois -= joueur.xprev;
@@ -311,7 +309,7 @@ void action_ecran(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, T
         break;
 
             case SELECTING:     //on arrete la selection et on valide/selectionne
-            DEB("1-1-3")
+
                 //s'il faut prendre un batiment
             bat = carte[DIV(x)][DIV(y)].erige;
             if (DIV(x)==DIV(joueur.xprev) && DIV(y)==DIV(joueur.yprev) && //si la souris n'a pas changé de case
@@ -358,26 +356,24 @@ void action_ecran(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, T
 
         joueur.clic_prec = 0; //on garde le fait que le joueur n'a pas cliqué
     }
-    DEB("1-1-4")
 }
 
 //prend les actions du joueur sur l'UI
 void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
 {
     Build *bat;
-    int xval, yval, p, clk, bois = 0, pierre = 0, uni = 0; //quand besoin est de variables
+    int xval, yval, clk, bois = 0, pierre = 0, uni = 0; //quand besoin est de variables
+    bool p;
 
     //on se place dans le refferentiel de l'UI
     y -= ECRANY*COTE; //ce sous-programme n'est appelé que si la souris est sur l'UI (la partie basse de l'écran)
-    DEB("1-2-0")
+
     if (x<(MAPWIDTH+MOVELIMIT)) //si la souris est sur la minimap
     {
-        DEB("1-2-1")
         x -= MOVELIMIT; //on ignore la partie à gauche de la minimap
 
         if (mouse_b & 1) //si clique gauche
         {
-            DEB("1-2-2")
             xval = x - (joueur.xecran/2); //on fait que la souris soit au centre du recltangle de l'écran sur la minimap
             yval = y - (joueur.yecran/2);
 
@@ -398,7 +394,6 @@ void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZE
         }
         if (mouse_b & 2) //clique gauche
         {
-            DEB("1-2-3")
             switch (joueur.act)
             {
                 case SELECTED: //on deplace les unitées sur la minimap
@@ -424,10 +419,8 @@ void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZE
     }
     else if (x>=SEPARE) //si on est dans le menu unité
     {
-        DEB("1-2-4")
         if (mouse_b & 1) //clique gauche
         {
-            DEB("1-2-5")
             x -= SEPARE; //on se base dans le rectangle du menu
 
             if (joueur.clic_prec!=1) //si on est bien sur front descendant
@@ -435,12 +428,12 @@ void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZE
                 switch (joueur.act)
                 {
                     case SELECTED: //on a déjà selectionné des unité
-                    p = 0;
+                    p = false;
 
                     for (auto& elem : joueur.selection)
                     {
                         if (elem->type==PEASANT) ///à remplacer par un can build ou autre
-                            p = 1; ///à remplacer par un bool
+                            p = true;
                     }
 
                     if (p) //s'il y a des constructeurs dans la selection
@@ -484,7 +477,7 @@ void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZE
 
                     if (clk) //si la souris est sur une icone à cliquer
                     {
-                        p = 0;
+                        p = false;
                         bat = carte[joueur.xprev][joueur.yprev].erige; //on prend le pointeur du batiment selectionné
 
                         if (bat->curr_queue<QUEUE_MAX) //s'il y a de la place dans la queue du batiment
@@ -497,7 +490,7 @@ void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZE
                                     bois = WOOD_PEAS;
                                     pierre = ROCK_PEAS; //on prend les valeur des ressources à payer
                                     uni = PEASANT;
-                                    p = 1;
+                                    p = true;
                                 }
                             break;
 
@@ -507,7 +500,7 @@ void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZE
                                     bois = WOOD_SOLD;
                                     pierre = ROCK_SOLD;
                                     uni = SOLDIER;
-                                    p = 1;
+                                    p = true;
                                 }
                             break;
 
@@ -556,7 +549,6 @@ void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZE
         joueur.act = SELECTED;
         joueur.type = 0;
     }
-    DEB("1-2-6")
 }
 
 //renvoie quel bouton a été cliqué sur le menu unité (0 si rien)

@@ -206,17 +206,15 @@ void end_game(Sprites& sprites, Joueur& joueur)
 
     sprintf(nom, "%s%d-%d.txt", SAUV, joueur.map_num, joueur.level);
 
-    DEB("7-0")
+
 
     fic = fopen(nom, "r");
     if (fic==NULL)
     {
-        DEB("7-1")
         quant = 0;
     }
     else
     {
-        DEB("7-2")
         fscanf(fic, "%d\n", &quant);
 
         if (quant>10)
@@ -228,7 +226,7 @@ void end_game(Sprites& sprites, Joueur& joueur)
         }
         fclose(fic);
     }
-    DEB("7-3")
+
     getTime(now);
 
     nouveau = getSecInt(joueur.debut, now);
@@ -245,10 +243,9 @@ void end_game(Sprites& sprites, Joueur& joueur)
             break;
         }
     }
-    DEB("7-4")
+
     if (a)
     {
-        DEB("7-5")
         for (i=quant;i>j;i--)
         {
             tab[i] = tab[i-1];
@@ -261,7 +258,7 @@ void end_game(Sprites& sprites, Joueur& joueur)
     quant++;
     tab[j] = nouveau;
 
-    DEB("7-6")
+
 
     buffer = create_bitmap(XSCREEN, YSCREEN);
     fond = create_bitmap(XSCREEN, YSCREEN);
@@ -273,7 +270,7 @@ void end_game(Sprites& sprites, Joueur& joueur)
     xbouton = XSCREEN/2 - BOUTON_W/2;
     draw_sprite(avant, sprites.v_buttons[joueur.langue][0], PAUSE_W/2 - BOUTON_W/2, 0);
 
-    DEB("7-7")
+
     switch (joueur.langue)
     {
         default:
@@ -295,7 +292,7 @@ void end_game(Sprites& sprites, Joueur& joueur)
         textprintf_ex(avant, font, 40, ECART_P+40+i*20, COL_UI_ACC, -1, " N°%d%s:  %d:%s%d", i+1, i<9?" ":"", (int)(tab[i]/60), (tab[i]%60)<10?"0":"", tab[i]%60);
     }
     textprintf_ex(avant, font, 170, ECART_P + 40 + j*20, COL_UI_ACC, -1, "%s", "YOU");
-    DEB("7-8")
+
     draw_sprite(avant, sprites.v_buttons[joueur.langue][1], PAUSE_W/2 - BOUTON_W/2, PAUSE_H - ECART_P);
 
     a = 0;
@@ -305,13 +302,11 @@ void end_game(Sprites& sprites, Joueur& joueur)
         masked_blit(avant, buffer, 0, 0, XSCREEN/2 - PAUSE_W/2, PAUSE_Y, PAUSE_W, PAUSE_H);
         draw_sprite(buffer, sprites.souris, mouse_x, mouse_y);
         blit(buffer, screen, 0, 0, 0, 0, XSCREEN, YSCREEN);
-        DEB("7-9")
+
         if (mouse_x>xbouton && mouse_x<(xbouton + BOUTON_W) && (mouse_y-PAUSE_Y)>(PAUSE_H-ECART_P) && (mouse_y-PAUSE_Y)<(PAUSE_H-(ECART_P-BOUTON_H)))
         {
-            DEB("7-10")
             if (joueur.clic_prec==1 && !(mouse_b & 1))
             {
-                DEB("7-11")
                 a = 1;
             }
         }
@@ -329,29 +324,24 @@ void end_game(Sprites& sprites, Joueur& joueur)
     destroy_bitmap(buffer);
     destroy_bitmap(fond);
 
-    DEB("7-12")
+
     if (quant>10)
     {
-        DEB("7-13")
         quant = 10;
     }
 
     fic = fopen(nom, "w");
 
-    DEB("7-14")
 
     fprintf(fic, "%d\n", quant);
 
-    DEB("7-15")
 
     for (i=0;i<quant;i++)
     {
-        DEB("7-16")
         fprintf(fic, "%d\n", tab[i]);
     }
-    DEB("7-17")
+
     fclose(fic);
-    DEB("7-18")
 }
 
 //initialisation de allegro

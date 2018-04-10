@@ -6,13 +6,8 @@
 */
 
 #include "auto.h"
+#include "defines.h"
 
-#define BAT 0
-#define UNIT 1
-#define TIME 2
-
-#define BAR_W 75
-#define BAR_H 6//pour le health bar
 
 
 ///dessine une "barre de chargement" pour l'hp etc

@@ -52,12 +52,12 @@ int main()
     list<Unit *> ancre;             //La liste chainée contenant toutes les unités (alliées ET ennemies)
     list<Build *> ancre_b;          //La liste chainée contenant tous les batiments (alliés ET ennemis)
     Joueur joueur;                  //la structure avec toutes les valeurs "globales" (position de la camera, ressources...)
-    Sprites sprites;                //La structure contenant toutes les bitmaps
+    Sprites sprites;                //La structure contenant toutes les bitmap
     BITMAP *buffer;                 //Le buffer de l'écran
 
     TIMESTRUCT prev;                //on garde le temps à chaque tour de boucle (pour la temporisation)
-    int choix, map, diff = -1;      //valeurs de retours du menu
-    int end;                        //la valeur de vicoire (0 si la partie est en cour, 1 si gagne, -1 si perdu)
+    int choix, mapchoice, diff = -1;      //valeurs de retours du menu
+    int finished;                   //la valeur de vicoire (0 si la partie est en cour, 1 si gagne, -1 si perdu)
 
     init_alleg(XSCREEN, YSCREEN);
 
@@ -70,17 +70,14 @@ int main()
 
     do //la boucle générale, revient au début quand la partie est terminé
     {
-        map = 0;
+        mapchoice = 0;
         do
         {
-            DEB("0")
 
             choix = menu(sprites, joueur, MAIN_MENU);
-            DEB("0-0")
 
             if (choix!=EXIT)
             {
-                DEB("0-1")
 
                 switch (choix)
                 {
@@ -88,77 +85,70 @@ int main()
                     case NEWGAME:
                     do
                     {
-                        map = menu(sprites, joueur, MAP_MENU);
-                        if (map)
+                        mapchoice = menu(sprites, joueur, MAP_MENU);
+                        if (mapchoice)
                         {
                             diff = menu(sprites, joueur, DIFF_MENU);
                         }
-                        DEB("0-2")
-                    }while (map!=0 && diff==0);
-                    DEB("0-3")
+
+                    }while (mapchoice!=0 && diff==0);
 
                 break;
 
                     case LOAD:
-                    map = menu(sprites, joueur, LOAD_MENU);
-                    if (map)
-                        map+=3;
+                    mapchoice = menu(sprites, joueur, LOAD_MENU);
+                    if (mapchoice)
+                        mapchoice+=3;
 
                 break;
                 }
             }
 
-        }while (choix!=EXIT && map==0);
+        }while (choix!=EXIT && mapchoice==0);
 
-        DEB("0-4")
 
         //on remet les valeurs aux valeurs initiales (discutablement inutile)
         reset(ancre, ancre_b, joueur, carte);
 
-        DEB("0-5")
 
         if (choix!=EXIT)
         {
             //on charge la map
-            load_game(carte, ancre, ancre_b, joueur, map);
+            load_game(carte, ancre, ancre_b, joueur, mapchoice);
 
-            DEB("0-6")
 
             if (choix==NEWGAME)
                 joueur.level = diff;
 
-            end = 0;
+            finished = 0;
 
-            while (!end && !joueur.quit) //la boucle de jeu
+            while (!finished && !joueur.quit) //la boucle de jeu
             {
-                DEB("1")
                 //check des action du joueur (de la souris)
                 action(ancre, ancre_b, joueur, carte);
-                DEB("2")
+
                 //mise à jour du terrain de jeu (faire avancer toutes les unités, attaque etc)
                 update(carte, ancre, ancre_b, joueur);
-                DEB("3")
+
                 //affichage de tout l'écran sur le buffer
                 draw_screen(buffer, ancre, ancre_b, carte, sprites, joueur);
                 blit(buffer, screen, 0, 0, 0, 0, XSCREEN, YSCREEN);
-                DEB("4")
+
                 if (joueur.pause)
                     pause_game(joueur, sprites, carte, ancre, ancre_b);
-                DEB("5")
-                end = victory_check(joueur);
-                DEB("6")
+
+                finished = victory_check(joueur);
+
                 //temporisation de la boucle de jeu
                 attente(prev);
             }
 
-            if (end==1)
+            if (finished==1)
             {
-                DEB("7")
                 end_game(sprites, joueur);
             }
-            else if (end==-1)
+            else if (finished==-1)
             {
-                DEB("8-0")
                 switch (joueur.langue) ///À CHANGER!!!
                 {
                     default:
@@ -176,14 +166,12 @@ int main()
                 }
             }
 
-            DEB("8-1")
 
 
             if (TEST && key[KEY_ESC]) //on garede la partie dans le deuxième fichier de sauvegarde (pour tester)
                 save_game(carte, ancre, ancre_b, joueur, 2);
-E(1)            DEB("8-2")
+
             reset(ancre, ancre_b, joueur, carte);
-E(2)            DEB("8-3")
         }
         else
         {

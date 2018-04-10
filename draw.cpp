@@ -331,18 +331,13 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
     yo = -(joueur.ycamera%COTE);
 
 
-    DEB("3-0")
     if (joueur.change)
     {
-        DEB("3-0-0")
         if (joueur.chang_taill)
         {
-            DEB("3-0-1")
             destroy_bitmap(sprites.prev);
             sprites.prev = create_bitmap(joueur.xecran*COTE, joueur.yecran*COTE);
             joueur.chang_taill = 0;
-
-            DEB("3-0-2")
         }
 
         //affichage des tuiles
@@ -393,7 +388,6 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
 
     blit(sprites.prev, raw, 0, 0, 0, 0, joueur.xecran*COTE, joueur.yecran*COTE);
 
-    DEB("3-01")
 
     //affichage du nombre de ressources
     for (i=0;i<xtaille;i++)
@@ -405,7 +399,6 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
         }
     }
 
-    DEB("3-1")
 
     if (joueur.act==PLACE_BUILD) //on montre l'aperçu du batiment à construire
     {
@@ -426,7 +419,6 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
         }
     }
 
-    DEB("3-2")
 
     //affichage des differentes infos des batiments
     for (auto& elem : ancre_b)
@@ -454,7 +446,6 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
     }
 
 
-    DEB("3-3")
 
     //affichage des unités
     for (auto& elem : ancre)
@@ -499,7 +490,6 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
         }
     }
 
-    DEB("3-4")
 
 
     //affichage différent pour les unités selectionnées
@@ -516,7 +506,6 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
         }
     }
 
-    DEB("3-5")
 
     //affichage du brouillard de guerre (partie invisible non explorée)
     if (!TEST)
@@ -616,29 +605,28 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
             }
         }
     }
-    DEB("3-6")
+
     if (joueur.act==SELECTING)
     {
         rect(raw, joueur.xprev-joueur.xcamera, joueur.yprev-joueur.ycamera, mouse_x*((float)joueur.xecran/ECRANX), mouse_y*((float)joueur.yecran/ECRANY), VERT);
     }
-    DEB("3-7")
 
-    /// À TRANSFORMER EN STRETCH BLIT
+
+
     stretch_blit(raw, dest, 0, 0, joueur.xecran*COTE, joueur.yecran*COTE,0, 0, ECRANX*COTE, ECRANY*COTE);
     destroy_bitmap(raw);
 
-    DEB("3-8")
+
     temp = create_bitmap(ECRANX*COTE, UI_HEIGHT);
     draw_ui(temp, ancre, carte, sprites, joueur);
     blit(temp, dest, 0, 0, 0, ECRANY*COTE, ECRANX*COTE, UI_HEIGHT);
     destroy_bitmap(temp);
-    DEB("3-9")
+
 
     temp = game_info(joueur, sprites);
     blit(temp, dest, 0, 0, ECRANX*COTE - ISIZEX, 0, ISIZEX, ISIZEY);
     destroy_bitmap(temp);
 
-    DEB("3-10")
 
     //le rectangle en bas sur l'ecran pour pouvoir "scroll"
     masked_blit(sprites.ign_d, dest, 0, 0, 0, YSCREEN - MOVELIMIT, XSCREEN, MOVELIMIT);

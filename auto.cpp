@@ -485,32 +485,26 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& 
 
     nend = 0;
 
-    DEB("2-0")
 
     for (iter_b = ancre_b.begin();iter_b!=ancre_b.end();iter_b++)
     {
         build = *iter_b;
 
-        DEB("2-1")
 
         if (build->hp<=0)
         {
-            DEB("2-2")
             destroy_build(ancre_b, iter_b, carte);
             joueur.change = 1;
         }
         else
         {
-            DEB("2-3")
             if (build->curr_queue) //s'il y a des unités en formation dans ce batiment
             {
-                DEB("2-4")
                 formation(ancre, carte, *build);
             }
-            DEB("2-5")
+
             if (build->side==ENEMY)
             {
-                DEB("2-6")
                 nend++; //le jeu n'est pas fini
 
                 if (build->statione<build->cap) //si il y a de la place pour spawn des ennemis autours
@@ -518,10 +512,9 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& 
             }
             else //si c'est un batiment allié
             {
-                DEB("2-7")
+
                 if (if_lose) //si les conditions de défaites pourraient être vraies
                 {
-                    DEB("2-8")
                     switch (carte[build->x][build->y].position/4)
                     {
                         default:
@@ -543,19 +536,16 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& 
                         if_lose = 0;
                 }
             }
-            DEB("2-8")
         }
 
     }
 
     joueur.nend_b = nend;
 
-    DEB("2-10")
 
 
     for (iter = ancre.begin();iter!=ancre.end();iter++)
     {
-        DEB("2-11")
 
         //on regarde une unité
         Unit& unite = *(*iter);
@@ -578,7 +568,6 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& 
 
         if (unite.state==DEAD)
         {
-            DEB("2-12")
             if (unite.side==ENEMY)
             {
                 if (unite.predator==ALLY)
@@ -594,34 +583,31 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& 
                     }
                 }
             }
-            DEB("2-13")
 
             delete *iter;
             ancre.erase(iter);
         }
         else
         {
-            DEB("2-14")
             act_unit(unite, ancre, carte, joueur);
 
             if (unite.side==ENEMY)
             {
                 joueur.nend_e++;
-                DEB("2-51")
+
                 automat(ancre, ancre_b, carte, joueur, unite);
-                DEB("2-52")
+
             }
         }
 
     }
 
-    DEB("2-60")
+
 
     //on fait spawn (si besoin) des ennemis aléatoirement sur la map
     if (nend)
         spawn_map(joueur, ancre, carte);
 
-    DEB("2-61")
 
     if (if_lose)
         joueur.nend_b = -1;
@@ -633,7 +619,7 @@ void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], 
     switch (unite.state)
     {
         case MOVING: //si l'unité est en mouvement OU inactive
-        DEB("2-21")
+
         if (unite.side==ALLY) //on eclaire la zone autours
             eclaire(carte, unite.x+unite.cote/2, unite.y+unite.cote/2, unite.vision);
 
@@ -641,7 +627,6 @@ void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], 
 
         if (unite.x!=unite.xdest || unite.y!=unite.ydest) //si l'unité est en mouvement
         {
-            DEB("2-22")
             //sous-prog de déplacement
             move_call(carte, ancre, unite);
 
@@ -656,7 +641,6 @@ void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], 
         }
         else //si l'unité est immobile
         {
-            DEB("2-23")
             unite.frame = 0;
 
             if (unite.side==ENEMY && unite.bat) //si c'est un garde on ne lui donne pas de distractions
@@ -670,13 +654,10 @@ void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], 
     break;
 
         case ATTACK: //si l'unité est en train d'attaquer
-        DEB("2-30")
         if (unite.frame==0) //si l'unité n'est pas au milieu d'une attaque
         {
-            DEB("2-31")
             if (if_elapsed(unite, WORK)) //si il est temps d'attaquer à nouveau
             {
-                DEB("2-32")
                 attack(ancre, carte, unite); //on attaque
 
                 unite.frame++; //on passe à l'image suivante
@@ -684,10 +665,8 @@ void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], 
         }
         else
         {
-            DEB("2-3")
             if (if_elapsed(unite, ANIMATION)) //s'il faut passer à la prochaine image de l'animation
             {
-                DEB("2-34")
                 unite.frame++;
                 if (unite.frame==NUMFRAMES)
                     unite.frame = 0;
@@ -696,16 +675,12 @@ void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], 
     break;
 
         case MINE:
-        DEB("2-40")
         if (unite.prod) //si c'est bien une unité qui peut produire
         {
-            DEB("2-41")
             if (unite.frame==0)
             {
-                DEB("2-42")
                 if (if_elapsed(unite, WORK)) //s'il faut extraire à nouveau
                 {
-                    DEB("2-43")
                     mine(carte, unite, joueur);
 
                     unite.frame++;
@@ -713,10 +688,8 @@ void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], 
             }
             else
             {
-                DEB("2-44")
                 if (if_elapsed(unite, ANIMATION))
                 {
-                    DEB("2-45")
                     unite.frame++;
                     if (unite.frame==NUMFRAMES)
                         unite.frame = 0;
@@ -732,7 +705,6 @@ void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], 
     }
 
     unite.predator = 0;
-    DEB("2-50")
 }
 
 //déplace l'unité en fonction de la destination

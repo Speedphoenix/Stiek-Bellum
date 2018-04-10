@@ -7,21 +7,7 @@
 
 
 #include "draw.h"
-
-/* macros pour les fonctions menu et pause */
-#define PAUSE_Y 75
-#define PAUSE_W 700
-#define PAUSE_H 800
-#define ECART_H 40
-#define ECART_P 150
-#define ECART_M 180
-
-#define NEWGAME 1
-#define LOAD 2
-#define EXIT 3
-#define RESUME 1
-#define SAVE 2
-
+#include "defines.h"
 
 ///les menus
 int menu(Sprites& sprites, Joueur& joueur, int type);
