@@ -473,13 +473,13 @@ using namespace std;
 
 
 //fonction d'actualisation, apellée à chaque tour de boucle
-void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, list<Build *>& ancre_b, Joueur& joueur)
+void update(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur)
 {
-    Maillon *inter1, *inter2;
     int bois, pierre, nend, if_lose = 1; //if_lose sert pour verifier les conditions de défaite
     Build *build;
 
-    list<Build *>::iterator iter1_b;
+    list<Build *>::iterator iter_b;
+    list<Unit *>::iterator iter;
 
     joueur.nend_e = 0;
 
@@ -487,16 +487,16 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, list<Build *>& ancre_b
 
     DEB("2-0")
 
-    for (iter1_b = ancre_b.begin();iter1_b!=ancre_b.end();iter1_b++)
+    for (iter_b = ancre_b.begin();iter_b!=ancre_b.end();iter_b++)
     {
-        build = *iter1_b;
+        build = *iter_b;
 
         DEB("2-1")
 
         if (build->hp<=0)
         {
             DEB("2-2")
-            destroy_build(ancre_b, iter1_b, carte);
+            destroy_build(ancre_b, iter_b, carte);
             joueur.change = 1;
         }
         else
@@ -552,15 +552,13 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, list<Build *>& ancre_b
 
     DEB("2-10")
 
-    inter1 = ancre->debut;
 
-    while (inter1!=NULL) //on passe par toutes les unités une à la fois
+    for (iter = ancre.begin();iter!=ancre.end();iter++)
     {
         DEB("2-11")
-        inter2 = inter1->next;
 
         //on regarde une unité
-        Unit& unite = *inter1->unite;
+        Unit& unite = *(*iter);
 
 
         if (unite.side==ALLY)
@@ -597,25 +595,28 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, list<Build *>& ancre_b
                 }
             }
             DEB("2-13")
-            supprimer(ancre, inter1, 1);
+
+            delete *iter;
+            ancre.erase(iter);
         }
         else
         {
             DEB("2-14")
-            act_unit(unite, *ancre, carte, joueur);
+            act_unit(unite, ancre, carte, joueur);
 
             if (unite.side==ENEMY)
             {
                 joueur.nend_e++;
                 DEB("2-51")
-                automat(*ancre, ancre_b, carte, joueur, unite);
+                automat(ancre, ancre_b, carte, joueur, unite);
                 DEB("2-52")
             }
         }
 
-        inter1 = inter2;
     }
+
     DEB("2-60")
+
     //on fait spawn (si besoin) des ennemis aléatoirement sur la map
     if (nend)
         spawn_map(joueur, ancre, carte);
@@ -627,7 +628,7 @@ void update(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, list<Build *>& ancre_b
 }
 
 //l'actualisation d'une seule unité
-void act_unit(Unit& unite, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur)
+void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur)
 {
     switch (unite.state)
     {
@@ -735,7 +736,7 @@ void act_unit(Unit& unite, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur&
 }
 
 //déplace l'unité en fonction de la destination
-void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, Unit& unite)
+void move_call(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, Unit& unite)
 {
     Unit *enemi=NULL;
     Tile tuile;
@@ -912,7 +913,7 @@ void move_call(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, Unit& unite)
 }
 
 //décide du chemin que l'unité doit prendre
-void path(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, Unit& unite)
+void path(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, Unit& unite)
 {
     int i, j, k;
 
@@ -1159,7 +1160,7 @@ void path(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, Unit& unite)
 }
 
 //fait attaquer l'unité
-void attack(Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Unit& unite)
+void attack(list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Unit& unite)
 {
     Unit *victime;
     Tile tuile = carte[DIV(unite.xdest)][DIV(unite.ydest)];
@@ -1405,7 +1406,7 @@ int if_elapsed(Unit& unite, int type)
 }
 
 //forme regarde le batiment et forme une unité s'il y en a une à former
-void formation(Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY], Build& build)
+void formation(list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Build& build)
 {
     int i;
     TIMESTRUCT now;
@@ -1433,9 +1434,10 @@ void formation(Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY], Build& build)
             //si on a passé le temps de formation de l'unite
         if (elapsed>=needed)
         {
-            if (reparti(build, *ancre, carte, &x, &y))
+            if (reparti(build, ancre, carte, &x, &y))
             {
-                add_unit(ancre, build.unit_queue[0], STAND, x, y, &build); //le batiment pointé ne sert pas vraiment mais bon...
+                ancre.push_back(new Unit(build.unit_queue[0], STAND, x, y, &build));
+
                 build.curr_queue--; //on enleve l'unité de la queue de formation
                 for (i=0;i<build.curr_queue;i++)
                 {                                       //on décale la queue de un cran
@@ -1448,7 +1450,7 @@ void formation(Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY], Build& build)
 }
 
 //repartit l'unité autours du batiment là où y'a de la place
-int reparti(Build& bat, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int *x, int *y)
+int reparti(Build& bat, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int *x, int *y)
 {
     int i, j;
     int rep = 0;
@@ -1471,7 +1473,7 @@ int reparti(Build& bat, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int *x, in
 }
 
 //spawn des ennemis autours d'un batiment ennemi (et blindage)
-void spawn_camp(Build& build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
+void spawn_camp(Build& build, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY])
 {
     TIMESTRUCT now;
     double elapsed;
@@ -1501,7 +1503,7 @@ void spawn_camp(Build& build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
                     y=MAPSIZEY*COTE;
 
                 //si l'emplacement est libre
-                if (!carte[DIV(x)][DIV(y)].block && !trouve(*ancre, x, y, NULL, NEUTR))
+                if (!carte[DIV(x)][DIV(y)].block && !trouve(ancre, x, y, NULL, NEUTR))
                 {
                     a = 1;
                     x-=COTE/2; //on prend les bonnes coordonnées
@@ -1509,13 +1511,13 @@ void spawn_camp(Build& build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
                 }
             }
             else //si on a eu aucun succes avec les RNG
-                a = reparti(build, *ancre, carte, &x, &y);
+                a = reparti(build, ancre, carte, &x, &y);
         }
 
 
         if (a) //si ça a marché on ajoute l'unité
         {
-            add_unit(ancre, ENEMY, GUARD, x, y, &build);
+            ancre.push_back(new Unit(ENEMY, GUARD, x, y, &build));
 
             build.statione++; //le batiment a moins de place maintenant
 
@@ -1526,7 +1528,7 @@ void spawn_camp(Build& build, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
 }
 
 //spawn des ennemis aléatoirement sur la map
-void spawn_map(Joueur& joueur, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
+void spawn_map(Joueur& joueur, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY])
 {
     int i, j;
     TIMESTRUCT now;
@@ -1544,7 +1546,7 @@ void spawn_map(Joueur& joueur, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
         x = rand()%MAPSIZEX;
         y = rand()%MAPSIZEY;
 
-        if (!carte[x][y].block && !trouve(*ancre, x*COTE+COTE/2, y*COTE+COTE/2, NULL, NEUTR)) //on regarde dabords si la place est libre
+        if (!carte[x][y].block && !trouve(ancre, x*COTE+COTE/2, y*COTE+COTE/2, NULL, NEUTR)) //on regarde dabords si la place est libre
         {
             a = 1;
             for (i=-BALANCE(SAFEZONE);i<=BALANCE(SAFEZONE);i++) //on regarde tout autours si c'est pas trop proche d'un batiment allié
@@ -1565,7 +1567,7 @@ void spawn_map(Joueur& joueur, Ancre *ancre, Tile carte[MAPSIZEX][MAPSIZEY])
 
         if (a)
         {
-            add_unit(ancre, ENEMY, STAND, x, y, NULL);
+            ancre.push_back(new Unit(ENEMY, STAND, x, y, NULL));
 
             joueur.last_spawn = now; //on remet à zero le timer du spawn
         }
@@ -1651,11 +1653,10 @@ int next_res(Unit& unite, Tile carte[MAPSIZEX][MAPSIZEY])
 }
 
 //pour une unité ennemie, regarde quoi faire
-void automat(Ancre& ancre, list<Build *>& ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur, Unit& unite)
+void automat(list<Unit *>& ancre, list<Build *>& ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur, Unit& unite)
 {
     int i, j;
     int a, b, dist, x, y, xbatdest = 0, ybatdest = 0, xtile, ytile;
-    Maillon *maill;
     Unit *inter;
     Build* bat;
     Tile tuile;
@@ -1705,10 +1706,9 @@ void automat(Ancre& ancre, list<Build *>& ancre_b, Tile carte[MAPSIZEX][MAPSIZEY
 
                 dist = unite.vision*COTE + 1; //la distance prise initialement est superieure à la portée de l'unité
 
-                maill = ancre.debut;
-                while (maill!=NULL) //check d'unités opposantes à attaquer
+                for (auto& elem : ancre) //check d'unités opposantes à attaquer
                 {
-                    inter = maill->unite;
+                    inter = elem;
 
                     if (unite.side!=inter->side)
                     {
@@ -1722,9 +1722,8 @@ void automat(Ancre& ancre, list<Build *>& ancre_b, Tile carte[MAPSIZEX][MAPSIZEY
                             a = 0;
                         }
                     }
-
-                    maill = maill->next;
                 }
+
 
                 if (a) //check de batiments opposants à attaquer
                 {

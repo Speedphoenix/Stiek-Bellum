@@ -11,114 +11,9 @@
 
 using namespace std;
 
-//crée une nouvelle unité et l'ajoute à la liste chainée
-void add_unit(Ancre *ancre, int type, int priority, int x, int y, Build *bat)
-{
-    Unit *rep = new Unit();
-
-    rep->x = x;
-    rep->y = y;
-    rep->xdest = x; //l'unité est immobile à la création
-    rep->ydest = y;
-    rep->xpath = DIV(x);
-    rep->ypath = DIV(y);
-    rep->changepath = 1;
-    rep->step = NULL;
-
-    rep->direction = RIGHT; //par défaud une unité regarde à droite
-    rep->cote = 75;         //pour l'instant toutes les unités ont la même taille
-    rep->unitsize = 1;
-
-    rep->frame = 0;         //la première image de l'animation (immobile)
-    rep->state = MOVING;    //immobile
-    rep->prec = MOVING;     //la serie d'image d'où predre la bitmap
-    rep->priority = priority;  //priorité la plus basse
-    rep->bat = bat;         //le batiment à pointer (si aplicable)
-
-    switch (type)
-    {
-        case SOLDIER:
-        rep->hp = HP_SOLDIER;
-        rep->hp_max = HP_SOLDIER;
-        rep->damage = 20;   //les degats de cette unité
-        rep->side = ALLY;
-        rep->type = SOLDIER;
-
-
-        rep->prod = 0;      //ne peut pas produire de ressources
-        rep->speed = 8*SCALE;     //vitesse de deplacement (pixels par tour de boucle)
-        rep->range = 80;    //portée d'attaque
-        rep->delay = 2.0;   //temps d'attente entre chaque attaque
-        rep->vision = 4;    //zone éclairée autours de cette unité
-    break;
-
-        case PEASANT:
-        rep->hp = HP_PEASANT;
-        rep->hp_max = HP_PEASANT;
-        rep->damage = 10;
-        rep->side = ALLY;
-        rep->type = PEASANT;
-
-
-        rep->prod = 1;      // peut produire des ressources
-        rep->speed = 6*SCALE;
-        rep->range = 80;
-        rep->delay = 2.0;
-        rep->vision = 4;
-    break;
-
-        case ENEMY:
-        rep->hp = HP_ENEMY;
-        rep->hp_max = HP_ENEMY;
-        rep->damage = 20;
-        rep->side = ENEMY;
-        rep->type = ENEMY;
-
-
-        rep->prod = 0;
-        rep->speed = 10*SCALE;
-        rep->range = 80;
-        rep->delay = 2.0;
-        rep->vision = 4;
-    break;
-
-        default:
-    break;
-    }
-
-    //on initialise les temps pour l'attaque et l'animation
-    getTime(rep->since_a);
-    getTime(rep->since_w);
-
-    ajout_debut(ancre, rep); //on ajoute l'unité à la liste chainée
-}
-
-//crée un nouveau batiment et renvoie son pointeur
-Build *nouv_batiment(int x, int y, int w, int h, int side, int state)
-{
-    Build *rep = new Build();
-
-    rep->x = x;
-    rep->y = y;
-    rep->w = w; //width height
-    rep->h = h;
-
-    rep->side = side;
-    rep->state = state; //l'état du batiment (normal, en construction..)
-    rep->hp_max = HP_BUILD_S;
-    rep->hp = state?10:rep->hp_max; //si le batiment commence à être construit il recevra les pv au fur et à mesure de la construction
-    rep->range = 150; //la portée d'attaque du batiment (ne sert pour l'instant à rien)
-    rep->damage = 40; //les dégats du batiment (ne sert pour l'instant à rien)
-    rep->cap = side?0:5;
-    rep->statione = 0;
-
-    rep->curr_queue = 0; //il n'y a aucune unité en cours de formation dans ce batiment
-
-    return rep;
-}
 
 //verifie si on peut ajouter le batiment à ces coordonnées et le place et l'ajoute à la liste chainée (renvoie 0 sinon)
-bool add_bat(list<Build *>& ancre_b, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int state, int type)
+bool add_bat(list<Build *>& ancre_b, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int state, int type)
 {
     int i, j;
     bool rep = false;
@@ -130,7 +25,7 @@ bool add_bat(list<Build *>& ancre_b, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY
         !carte[x+1][y+1].block && !trouve(ancre, (x+1)*COTE + COTE/2, (y+1)*COTE + COTE/2, NULL, NEUTR))
     {
         rep = true; //y'a de la place/ça a marché
-        nouv = nouv_batiment(x, y, 2, 2, ALLY, state);
+        nouv = new Build(x, y, 2, 2, ALLY, state);
 
         for (i=0;i<2;i++)
         {
@@ -180,9 +75,9 @@ void destroy_build(list<Build *>& ancre, list<Build *>::iterator& del, Tile cart
 }
 
 //prend les actions du joueur (action avec la souris)
-void action(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY])
+void action(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY])
 {
-    Maillon *inter1 = joueur.selection.debut, *inter2;
+    list<Unit *>::iterator iter;
 
     int valx = 0, valy = 0, val = 0;
 
@@ -197,19 +92,18 @@ void action(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAP
     //on enleve toutes les unités qui auraient pu mourrir de la selection
     if (joueur.act==SELECTED || joueur.act==PLACE_BUILD)
     {
-        while(inter1!=NULL) //on regarde chaque unité de la selection
+        for (iter = joueur.selection.begin();iter!=joueur.selection.end();iter++)
         {
-            inter2 = inter1->next; //on prend maintenant le maillon suivant (si jamais on a suprimé le courant après)
-
-            if (inter1->unite->state == DEAD)
-                supprimer(&joueur.selection, inter1, 0); //on l'enlève de la selection
-            else if (inter1->unite->prod) //si il reste une unité qui peut construire un batiment
+            if ((*iter)->state == DEAD)
+            {
+                joueur.selection.erase(iter); //on l'enlève de la selection
+            }
+            else if ((*iter)->prod) //si il reste une unité qui peut construire un batiment
                 val++;
-
-            inter1 = inter2;
         }
 
-        if (joueur.selection.debut==NULL) //si la séléction s'est vidée entre temps
+
+        if (joueur.selection.empty()) //si la séléction s'est vidée entre temps
         {
             joueur.act = RIEN;
             joueur.type = 0;
@@ -284,9 +178,8 @@ void action(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAP
 }
 
 //prend les actions du joueur sur le terrain de jeu (la map)
-void action_ecran(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
+void action_ecran(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
 {
-    Maillon *inter = NULL;
     Build *bat;
     TIMESTRUCT now;
     double elapsed;
@@ -322,22 +215,19 @@ void action_ecran(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile car
             DEB("1-1-1")
             if (joueur.clic_prec!=2) //que si le joueur n'avait pas déjà clique droit (les unités ne suivent pas la souris)
             {
-                inter = joueur.selection.debut;
-
-                while (inter!=NULL) //on prend chaque unité de la selection
+                for (auto& elem : joueur.selection)
                 {
-                    if (inter->unite->priority<=ORDRE) //si la priorité est inferieure
+                    if (elem->priority<=ORDRE) //si la priorité est inferieure
                     {
-                        inter->unite->xdest = x; //on met les nouvelles coordonnées dans le GPS
-                        inter->unite->ydest = y;
-                        inter->unite->state = MOVING;
-                        inter->unite->priority = ORDRE;
-                        inter->unite->prec = MOVING;
-                        inter->unite->changepath = 1;
+                        elem->xdest = x; //on met les nouvelles coordonnées dans le GPS
+                        elem->ydest = y;
+                        elem->state = MOVING;
+                        elem->priority = ORDRE;
+                        elem->prec = MOVING;
+                        elem->changepath = 1;
                     }
-
-                    inter = inter->next;
                 }
+
             }
 
         break;
@@ -359,7 +249,7 @@ void action_ecran(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile car
             if (joueur.clic_prec) //si c'est c'est pas que le joueur a appuyé trop longtemps
                 break;
             else
-                libere(&joueur.selection, 0); //on libere la selection sans detruire les unités
+                joueur.selection.clear(); //on libere la selection sans detruire les unités
 
             default:            //on prend la selection
             case SELECT_BUILD:
@@ -389,20 +279,17 @@ void action_ecran(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile car
                     joueur.act = SELECTED;          //on revient à l'état de selection
                     joueur.change = 1;
 
-                    inter = joueur.selection.debut; //on deplace tous les paysants dans cette direction
-                    while (inter!=NULL)
+                    for (auto& elem : joueur.selection)
                     {
-                        if (inter->unite->priority<=ORDRE && inter->unite->prod)
+                        if (elem->priority<=ORDRE && elem->prod)
                         {
-                            inter->unite->xdest = x;
-                            inter->unite->ydest = y;
-                            inter->unite->state = MOVING;
-                            inter->unite->prec = MOVING;
-                            inter->unite->priority = ORDRE;
-                            inter->unite->changepath = 1;
+                            elem->xdest = x;
+                            elem->ydest = y;
+                            elem->state = MOVING;
+                            elem->prec = MOVING;
+                            elem->priority = ORDRE;
+                            elem->changepath = 1;
                         }
-
-                        inter = inter->next;
                     }
                 }
             }
@@ -442,15 +329,15 @@ void action_ecran(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile car
 
                 if (elapsed<=0.5) //si y'a double clic
                 {
-                    selec(&joueur.selection, ancre, joueur.xcamera, joueur.ycamera, joueur.xcamera + COTE*joueur.xecran, joueur.ycamera + COTE*joueur.yecran);
+                    selec(joueur.selection, ancre, joueur.xcamera, joueur.ycamera, joueur.xcamera + COTE*joueur.xecran, joueur.ycamera + COTE*joueur.yecran);
                 }
                 else
                 {
                     //on selectione les unités presentes dans le carré de selection
-                    selec(&joueur.selection, ancre, joueur.xprev, joueur.yprev, x, y);
+                    selec(joueur.selection, ancre, joueur.xprev, joueur.yprev, x, y);
                 }
 
-                if (joueur.selection.debut!=NULL) //si la selection n'est pas vide
+                if (!joueur.selection.empty()) //si la selection n'est pas vide
                 {
                     joueur.act = SELECTED;
                 }
@@ -475,9 +362,8 @@ void action_ecran(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile car
 }
 
 //prend les actions du joueur sur l'UI
-void action_ui(Ancre& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
+void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y)
 {
-    Maillon *inter = NULL;
     Build *bat;
     int xval, yval, p, clk, bois = 0, pierre = 0, uni = 0; //quand besoin est de variables
 
@@ -516,20 +402,17 @@ void action_ui(Ancre& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
             switch (joueur.act)
             {
                 case SELECTED: //on deplace les unitées sur la minimap
-                inter = joueur.selection.debut;
-                while (inter!=NULL)
+                for (auto& elem : joueur.selection)
                 {
-                    if (inter->unite->priority<=ORDRE) //si on a la priorité
+                    if (elem->priority<=ORDRE) //si on a la priorité
                     {
-                        inter->unite->xdest      = x * COTE;
-                        inter->unite->ydest      = y * COTE; //on met les nouvelles coordonnées dans le GPS
-                        inter->unite->state      = MOVING;
-                        inter->unite->priority   = ORDRE;
-                        inter->unite->prec       = MOVING;
-                        inter->unite->changepath = 1;
+                        elem->xdest         = x * COTE;
+                        elem->ydest         = y * COTE; //on met les nouvelles coordonnées dans le GPS
+                        elem->state         = MOVING;
+                        elem->priority      = ORDRE;
+                        elem->prec          = MOVING;
+                        elem->changepath    = 1;
                     }
-
-                    inter = inter->next;
                 }
             break;
 
@@ -554,13 +437,10 @@ void action_ui(Ancre& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int
                     case SELECTED: //on a déjà selectionné des unité
                     p = 0;
 
-                    inter = joueur.selection.debut;
-                    while (inter!=NULL)
+                    for (auto& elem : joueur.selection)
                     {
-                        if (inter->unite->type==PEASANT) //s'il y a des constructeurs dans la selection
-                            p = 1;
-
-                        inter = inter->next;
+                        if (elem->type==PEASANT) ///à remplacer par un can build ou autre
+                            p = 1; ///à remplacer par un bool
                     }
 
                     if (p) //s'il y a des constructeurs dans la selection
@@ -700,34 +580,32 @@ int unit_menu_click(int x, int y)
 
 
 //renvoie l'unité présente à ces coordonnées (NULL s'il n'y en a pas)
-Unit *trouve(Ancre& ancre, int x, int y, Unit *exclu, int side_excl)
+Unit *trouve(list<Unit *>& ancre, int x, int y, Unit *exclu, int side_excl)
 {
-    Maillon *maill = ancre.debut;
     Unit *rep = NULL;
     int ix, iy, siz;
 
-    while (maill!=NULL) //on regarde chaque unité
+    for (auto& elem : ancre)
     {
-        ix = maill->unite->x;
-        iy = maill->unite->y;
-        siz = maill->unite->cote;
+        ix = elem->x;
+        iy = elem->y;
+        siz = elem->cote;
         if (x<=(ix+siz) && x>=ix && y<=(iy+siz) && y>=iy) //s'il x et y sont à l'interieur de l'unité
         {
-            if (maill->unite != exclu && maill->unite->side != side_excl)// si c'est pas l'unité à ignorer
+            if (elem != exclu && elem->side != side_excl)// si c'est pas l'unité à ignorer
             {
-                rep = maill->unite; //on garde l'unité
+                rep = elem; //on garde l'unité
                 break;
             }
         }
-        maill = maill->next;
     }
+
     return rep;
 }
 
 //met dans l'ancre dest toutes les unités à l'interieur du rectangle de selection
-void selec(Ancre *dest, Ancre& ancre, int x1, int y1, int x2, int y2)
+void selec(list<Unit *>& dest, list<Unit *>& ancre, int x1, int y1, int x2, int y2)
 {
-    Maillon *maill = ancre.debut;
     int ix, iy, siz;
 
     //on s'arrange pour que x1<x2 et y1<y2
@@ -745,38 +623,37 @@ void selec(Ancre *dest, Ancre& ancre, int x1, int y1, int x2, int y2)
         y2=siz;
     }
 
-    while (maill!=NULL) //on regarde toutes les unités
+    for (auto& elem : ancre) //on regarde toutes les unités
     {
-        if (maill->unite->side==ALLY) //on ne prend que les alliés
+        if (elem->side==ALLY) //on ne prend que les alliés
         {
-            ix = maill->unite->x;
-            iy = maill->unite->y;
-            siz = maill->unite->cote;
+            ix = elem->x;
+            iy = elem->y;
+            siz = elem->cote;
 
             if (((ix<=x1 && (ix+siz)>=x1) || (ix>=x1 && ix<=x2)) && //on teste si il a un bout du rectangle de selection qui touche un bout de la zone autours de l'unité
                 ((iy<=y1 && (iy+siz)>=y1) || (iy>=y1 && iy<=y2)))
             {
-                ajout_debut(dest, maill->unite); //on l'ajoute à la selection
+                dest.push_back(elem); //on l'ajoute à la selection
+
             }
         }
-
-        maill = maill->next;
     }
 }
 
 //découvre les tuiles autours des coordonnées dans la portée
-void eclaire(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int porte)
+void eclaire(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int portee)
 {
     int i, j;
     int nx = DIV(x), ny = DIV(y); //on fait la convertion x et y en tuiles
 
-    for (i=(nx-porte);i<=(nx+porte);i++)
+    for (i=(nx-portee);i<=(nx+portee);i++)
     {
-        for (j=(ny-porte);j<=(ny+porte);j++) //pour chaque tuile autours
+        for (j=(ny-portee);j<=(ny+portee);j++) //pour chaque tuile autours
         {
             if (i>=0 && i<MAPSIZEX && j>=0 && j<MAPSIZEY && !carte[i][j].visible) //si la tuile n'est pas déjà visible
             {
-                if (if_dist(nx, ny, i, j, porte)) //si la distance est inferieure à la portée
+                if (if_dist(nx, ny, i, j, portee)) //si la distance est inferieure à la portée
                     carte[i][j].visible = 1;
             }
         }

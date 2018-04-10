@@ -27,7 +27,7 @@
 int menu(Sprites& sprites, Joueur& joueur, int type);
 
 ///met le jeu en ause, reprend quand le joueur l'a décidé
-void pause_game(Joueur& joueur, Sprites& sprites, Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, std::list<Build *>& ancre_b);
+void pause_game(Joueur& joueur, Sprites& sprites, Tile carte[MAPSIZEX][MAPSIZEY], std::list<Unit *>& ancre, std::list<Build *>& ancre_b);
 
 ///à appeller à la fin d'une partie pour les meilleurs scores
 void end_game(Sprites& sprites, Joueur& joueur);

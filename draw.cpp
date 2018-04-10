@@ -48,11 +48,10 @@ BITMAP *draw_status(double HPmax, double HPcurrent, int type)
 }
 
 //dessine l'UI avec les differents trucs dessus
-void draw_ui(BITMAP *dest, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites& sprites, Joueur& joueur)
+void draw_ui(BITMAP *dest, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites& sprites, Joueur& joueur)
 {
     int i, j;
     BITMAP *temp;
-    Maillon *inter;
     int p = 0, a = 0;
 
     //TIMESTRUCT prev;
@@ -61,16 +60,13 @@ void draw_ui(BITMAP *dest, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites
 
     if (joueur.act==SELECTED || joueur.act==PLACE_BUILD)
     {
-        inter = joueur.selection.debut;
-        while (inter!=NULL)
+        for (auto& elem : joueur.selection)
         {
-            if (inter->unite->type==PEASANT)
+            if (elem->type==PEASANT)
             {
                 a = 1;
                 p = PEASANT;
             }
-
-            inter = inter->next;
         }
     }
     else if(joueur.act==SELECT_BUILD)
@@ -89,29 +85,32 @@ void draw_ui(BITMAP *dest, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites
     //on affiche les icones des unités séléctionnées
     if (joueur.act==SELECTED || joueur.act==PLACE_BUILD)
     {
-        inter = joueur.selection.debut;
         j = 0;
-        while (j<5 && inter!=NULL) //max 5 lignes
+        i = 0;
+
+        for (auto& elem : joueur.selection)
         {
-            i = 0;
-            while (i<15 && inter!=NULL) //max 15 par ligne
+            switch (elem->type)
             {
-                switch (inter->unite->type)
-                {
-                    case SOLDIER:
-                    draw_sprite(dest, sprites.epee_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
-                break;
+                case SOLDIER:
+                draw_sprite(dest, sprites.epee_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
+            break;
 
-                    default:
-                    case PEASANT:
-                    draw_sprite(dest, sprites.paysant_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
-                break;
-                }
-
-                inter = inter->next;
-                i++;
+                default:
+                case PEASANT:
+                draw_sprite(dest, sprites.paysant_i, MAPWIDTH + MOVELIMIT + 25 + i*ICON_S, j*ICON_S);
+            break;
             }
-            j++;
+
+            i++;
+            if (i>=15)
+            {
+                i = 0;
+                j++;
+            }
+
+            if (j>=5)
+                break;
         }
     }
     else if (joueur.act==SELECT_BUILD)
@@ -148,11 +147,10 @@ void draw_ui(BITMAP *dest, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Sprites
 }
 
 //dessine la minimap
-BITMAP *minimap(Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur, int vis)
+BITMAP *minimap(list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur, int vis)
 {
     int i, j;
     BITMAP *rep = create_bitmap(MAPWIDTH, UI_HEIGHT);
-    Maillon *inter = ancre.debut;
     int col, x, y;
 
     //on dessine en fonction de la case
@@ -221,11 +219,11 @@ BITMAP *minimap(Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur, in
     }
 
     //on dessine les unités qu'il y a dessus
-    while (inter!=NULL)
+    for (auto& elem : ancre)
     {
-        x = DIV(inter->unite->x);
-        y = DIV(inter->unite->y);
-        switch (inter->unite->type)
+        x = DIV(elem->x);
+        y = DIV(elem->y);
+        switch (elem->type)
         {
             case ENEMY:
             if (carte[x][y].visible || TEST)
@@ -242,8 +240,6 @@ BITMAP *minimap(Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& joueur, in
         break;
         }
         rectfill(rep, x, y, x+1, y+1, col);
-
-        inter = inter->next;
     }
 
     rect(rep, DIV(joueur.xcamera), DIV(joueur.ycamera), (DIV(joueur.xcamera) + joueur.xecran), (DIV(joueur.ycamera) + joueur.yecran), BLANC);
@@ -293,12 +289,11 @@ BITMAP *game_info(Joueur& joueur, Sprites& sprites)
 }
 
 //dessine tout sur la bitmap dest
-void draw_screen(BITMAP *dest, Ancre& ancre, list<Build *>& ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Sprites& sprites, Joueur& joueur)
+void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile carte[MAPSIZEX][MAPSIZEY], Sprites& sprites, Joueur& joueur)
 {
     int i, j;
     Unit *inter = NULL;
     Build *bat = NULL;
-    Maillon *maill;
     Tile chaque;
     BITMAP *raw, *temp, *fog;
     double time_max, time_current;
@@ -461,11 +456,10 @@ void draw_screen(BITMAP *dest, Ancre& ancre, list<Build *>& ancre_b, Tile carte[
 
     DEB("3-3")
 
-    maill = ancre.debut;
     //affichage des unités
-    while (maill!=NULL)
+    for (auto& elem : ancre)
     {
-        inter = maill->unite;
+        inter = elem;
         if (inter->state!=DEAD)
         {
             if ((inter->x/COTE)>=xmin && (inter->y/COTE)>=ymin && (inter->x/COTE)<=(xmin+xtaille) && (inter->y/COTE)<=(ymin+ytaille))
@@ -503,16 +497,15 @@ void draw_screen(BITMAP *dest, Ancre& ancre, list<Build *>& ancre_b, Tile carte[
                 destroy_bitmap(temp);
             }
         }
-        maill = maill->next;
     }
 
     DEB("3-4")
 
-    maill = joueur.selection.debut;
+
     //affichage différent pour les unités selectionnées
-    while (maill!=NULL)
+    for (auto& elem : joueur.selection)
     {
-        inter = maill->unite;
+        inter = elem;
         if (inter->state!=DEAD)
         {
             if ((inter->x/COTE)>=xmin && (inter->y/COTE)>=ymin && (inter->x/COTE)<=(xmin+xtaille) && (inter->y/COTE)<=(ymin+ytaille))
@@ -521,9 +514,8 @@ void draw_screen(BITMAP *dest, Ancre& ancre, list<Build *>& ancre_b, Tile carte[
             }
 
         }
-
-        maill = maill->next;
     }
+
     DEB("3-5")
 
     //affichage du brouillard de guerre (partie invisible non explorée)
@@ -533,12 +525,12 @@ void draw_screen(BITMAP *dest, Ancre& ancre, list<Build *>& ancre_b, Tile carte[
         {
             fog = create_bitmap(joueur.xecran*COTE, joueur.yecran*COTE);
 
-            maill = ancre.debut;
 
             rectfill(fog, 0,0,COTE*joueur.xecran, COTE*joueur.yecran, NOIR);
-            while(maill!=NULL)
+            for (auto& elem : ancre)
             {
-                inter = maill->unite;
+                inter = elem;
+
                 if (inter->side==ALLY)
                 {
                     if ((inter->x/COTE)>=xmin-(sprites.fog->w)/2 && (inter->y/COTE)>=ymin -(sprites.fog->w)/2 && (inter->x/COTE)<=(xmin+xtaille)+(sprites.fog->w)/2 && (inter->y/COTE)<=(ymin+ytaille)+(sprites.fog->w)/2)
@@ -584,9 +576,7 @@ void draw_screen(BITMAP *dest, Ancre& ancre, list<Build *>& ancre_b, Tile carte[
                     }
                 }
 
-                maill = maill->next;
             }
-
 
 //            for (i=0; i<joueur.yecran*COTE; i++)
 //            {

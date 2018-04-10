@@ -93,7 +93,7 @@ void set_tile(Tile& tile, char type)
 }
 
 //chargement de toute la map et des bitmaps
-void load_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, list<Build *>& ancre_b, Joueur& joueur, int num)
+void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, int num)
 {
     int i, j, k;
     FILE *fic;
@@ -222,7 +222,7 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, list<Build *>& ancr
         unite->xpath = DIV(unite->xdest);
         unite->ypath = DIV(unite->ydest);
 
-        ajout_debut(ancre, unite);
+        ancre.push_back(unite);
 
         fscanf(fic, "\n");
     }
@@ -257,11 +257,10 @@ void load_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre *ancre, list<Build *>& ancr
 }
 
 //sauvegarde toute la partie dans un fichier de sauvegarde
-void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, int num)
+void save_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, int num)
 {
     int i, j;
     TIMESTRUCT now;
-    Maillon *inter1;
     Unit *unite;
     Build *bat;
     FILE *fic;
@@ -339,12 +338,11 @@ void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, list<Build *>& ancr
     }
 
 
-    fprintf(fic, "\n\n\n%d\n\n", taille(ancre));
-    inter1 = ancre.debut;
+    fprintf(fic, "\n\n\n%d\n\n", (int)ancre.size());
 
-    while (inter1!=NULL) //on sauvegarde toutes les unités
+    for (auto& elem : ancre) //on sauvegarde toutes les unités
     {
-        unite = inter1->unite;
+        unite = elem;
         fprintf(fic, "%d %d %d %d\n", unite->x, unite->y, unite->xdest, unite->ydest);
         fprintf(fic, "%d %d %d %d %d %d\n", unite->hp, unite->hp_max, unite->damage, unite->side, unite->type, unite->unitsize);
         fprintf(fic, "%d %d %d %d %d\n", unite->frame, unite->state, unite->priority, unite->prec, unite->direction);
@@ -359,8 +357,8 @@ void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, list<Build *>& ancr
             fprintf(fic, "%d %d\n", unite->bat->x, unite->bat->y);
 
         fprintf(fic, "\n");
-        inter1 = inter1->next;
     }
+
 
     fprintf(fic, "\n\n\n");
 
@@ -378,7 +376,7 @@ void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, list<Build *>& ancr
 }
 
 //remet tout à zero
-void reset(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY])
+void reset(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY])
 {
     int i, j;
     for (i=0;i<MAPSIZEX;i++)
@@ -420,8 +418,11 @@ void reset(Ancre& ancre, list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPS
     getTime(joueur.last_clic);
     getTime(joueur.last_spawn);
 
-    libere(&joueur.selection, 0);
-    libere(&ancre, 1);
+    joueur.selection.clear();
+
+    for (auto& elem : ancre)
+        delete elem;
+    ancre.clear();
 
     for (auto& elem : ancre_b)
         delete elem;

@@ -198,8 +198,9 @@ typedef struct Human{
     int act;
     ///le type de batiment à construire...
     int type;
+
     ///la liste chainée contnant toutes unitées selectionnées s'il y en a
-    Ancre selection;
+    std::list<Unit *> selection;
 
     ///le mouse_b precedent (pour certaines action on ne regarde que le front montant/descendant
     int clic_prec;
@@ -240,43 +241,37 @@ typedef struct Tile{
 }Tile;
 
 
-///crée une nouvelle unité et l'ajoute à la liste chainée
-void add_unit(Ancre *ancre, int type, int priority, int x, int y, Build *bat);
-
-///crée un nouveau batiment et renvoie son pointeur
-Build *nouv_batiment(int x, int y, int w, int h, int side, int state);
-
 ///verifie si on peut ajouter le batiment à ces coordonnées et le place et l'ajoute à la liste chainée (renvoie 0 sinon)
-bool add_bat(std::list<Build *>& ancre_b, Ancre& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int state, int type);
+bool add_bat(std::list<Build *>& ancre_b, std::list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int state, int type);
 
 ///detruit le batiment (l'enleve de l'ancre, et de la map)
 void destroy_build(std::list<Build *>& ancre, std::list<Build *>::iterator& del, Tile carte[MAPSIZEX][MAPSIZEY]);
 
 
 ///prend les actions du joueur (action avec la souris) ancre est l'ancre de tous les persos
-void action(Ancre& ancre, std::list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY]);
+void action(std::list<Unit *>& ancre, std::list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY]);
 
 ///prend les actions du joueur sur le terrain de jeu (la map)
-void action_ecran(Ancre& ancre, std::list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y);
+void action_ecran(std::list<Unit *>& ancre, std::list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y);
 
 ///prend les actions du joueur sur l'UI
-void action_ui(Ancre& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y);
+void action_ui(std::list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY], int x, int y);
 
 ///renvoie quel bouton a été cliqué sur le menu unité (0 si rien)
 int unit_menu_click(int x, int y);
 
 
 ///renvoie un pointeur sur l'unité présente à ces coordonnées (NULL s'il n'y en a pas) side_excl permet d'ignorer la population ennemie (mettre 2 ou 3 pour ne pas l'utiliser)
-Unit *trouve(Ancre& ancre, int x, int y, Unit *exclu, int side_excl);
+Unit *trouve(std::list<Unit *>& ancre, int x, int y, Unit *exclu, int side_excl);
 
 ///découvre les tuiles autours des coordonnées dans la portée
-void eclaire(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int porte);
+void eclaire(Tile carte[MAPSIZEX][MAPSIZEY], int x, int y, int portee);
 
 ///renvoie une booleenne: si la distance est inferieure ou non
 int if_dist(int x1, int y1, int x2, int y2, int dist);
 
 ///rempli l'ancre dest avec les unités comprises dans la selection
-void selec(Ancre *dest, Ancre& ancre, int x1, int y1, int x2, int y2);
+void selec(std::list<Unit *>& dest, std::list<Unit *>& ancre, int x1, int y1, int x2, int y2);
 
 ///pour voir l'optimisation
 void temps_passe(TIMESTRUCT& prev);

@@ -204,13 +204,13 @@ BITMAP *create_menu(Sprites& sprites, int type);
 void load_sprites(Sprites& sprites);
 
 ///chargement de toute la map dans le tableau vide et des bitmaps dans sprites
-void load_game(Tile vide[MAPSIZEX][MAPSIZEY], Ancre *ancre, std::list<Build *>& ancre_b, Joueur& joueur, int type);
+void load_game(Tile vide[MAPSIZEX][MAPSIZEY], std::list<Unit *>& ancre, std::list<Build *>& ancre_b, Joueur& joueur, int type);
 
 ///sauvegarde toute la partie dans un fichier de sauvegarde
-void save_game(Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, std::list<Build *>& ancre_b, Joueur& joueur, int num);
+void save_game(Tile carte[MAPSIZEX][MAPSIZEY], std::list<Unit *>& ancre, std::list<Build *>& ancre_b, Joueur& joueur, int num);
 
 ///remet tout à zero
-void reset(Ancre& ancre, std::list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY]);
+void reset(std::list<Unit *>& ancre, std::list<Build *>& ancre_b, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZEY]);
 
 
 #endif // LOAD_H_INCLUDED

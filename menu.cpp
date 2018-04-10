@@ -154,7 +154,7 @@ int menu(Sprites& sprites, Joueur& joueur, int type)
 }
 
 //met le jeu en ause, reprend quand le joueur l'a décidé
-void pause_game(Joueur& joueur, Sprites& sprites, Tile carte[MAPSIZEX][MAPSIZEY], Ancre& ancre, list<Build *>& ancre_b)
+void pause_game(Joueur& joueur, Sprites& sprites, Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& ancre_b)
 {
     int choix = 1;
 

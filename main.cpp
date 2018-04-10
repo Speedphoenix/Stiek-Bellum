@@ -49,7 +49,7 @@ int main()
     //les structures qui resteront jusqu'au bout:
 
     Tile carte[MAPSIZEX][MAPSIZEY]; //la map: un tableau de tuiles géant
-    Ancre ancre = NANCRE;           //La liste chainée contenant toutes les unités (alliées ET ennemies)
+    list<Unit *> ancre;             //La liste chainée contenant toutes les unités (alliées ET ennemies)
     list<Build *> ancre_b;          //La liste chainée contenant tous les batiments (alliés ET ennemis)
     Joueur joueur;                  //la structure avec toutes les valeurs "globales" (position de la camera, ressources...)
     Sprites sprites;                //La structure contenant toutes les bitmaps
@@ -120,7 +120,7 @@ int main()
         if (choix!=EXIT)
         {
             //on charge la map
-            load_game(carte, &ancre, ancre_b, joueur, map);
+            load_game(carte, ancre, ancre_b, joueur, map);
 
             DEB("0-6")
 
@@ -136,7 +136,7 @@ int main()
                 action(ancre, ancre_b, joueur, carte);
                 DEB("2")
                 //mise à jour du terrain de jeu (faire avancer toutes les unités, attaque etc)
-                update(carte, &ancre, ancre_b, joueur);
+                update(carte, ancre, ancre_b, joueur);
                 DEB("3")
                 //affichage de tout l'écran sur le buffer
                 draw_screen(buffer, ancre, ancre_b, carte, sprites, joueur);
@@ -181,9 +181,9 @@ int main()
 
             if (TEST && key[KEY_ESC]) //on garede la partie dans le deuxième fichier de sauvegarde (pour tester)
                 save_game(carte, ancre, ancre_b, joueur, 2);
-            DEB("8-2")
+E(1)            DEB("8-2")
             reset(ancre, ancre_b, joueur, carte);
-            DEB("8-3")
+E(2)            DEB("8-3")
         }
         else
         {
