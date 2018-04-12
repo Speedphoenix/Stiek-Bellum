@@ -6,7 +6,7 @@
     Une action du joueur par exemple
 */
 
-#include "chaine_b.h"
+#include "build.h"
 #include "defines.h"
 
 

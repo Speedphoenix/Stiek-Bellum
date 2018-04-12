@@ -574,7 +574,7 @@ int unit_menu_click(int x, int y)
 //renvoie l'unité présente à ces coordonnées (NULL s'il n'y en a pas)
 Unit *trouve(list<Unit *>& ancre, int x, int y, Unit *exclu, int side_excl)
 {
-    Unit *rep = NULL;
+    Unit *rep = nullptr;
     int ix, iy, siz;
 
     for (auto& elem : ancre)

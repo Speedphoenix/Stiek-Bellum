@@ -710,7 +710,7 @@ void act_unit(Unit& unite, list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], 
 //déplace l'unité en fonction de la destination
 void move_call(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, Unit& unite)
 {
-    Unit *enemi=NULL;
+    Unit *enemi = NULL;
     Tile tuile;
 
     ///FAIRE DES REFERENCES

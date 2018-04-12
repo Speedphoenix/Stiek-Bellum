@@ -507,100 +507,16 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
     }
 
 
-    //affichage du brouillard de guerre (partie invisible non explorée)
+    //affichage du brouillard de guerre (partie cachée non explorée)
     if (!TEST)
     {
-        if (!LAG)
+        for (i=0;i<xtaille;i++)
         {
-            fog = create_bitmap(joueur.xecran*COTE, joueur.yecran*COTE);
-
-
-            rectfill(fog, 0,0,COTE*joueur.xecran, COTE*joueur.yecran, NOIR);
-            for (auto& elem : ancre)
+            for (j=0;j<ytaille;j++)
             {
-                inter = elem;
-
-                if (inter->side==ALLY)
+                if (!carte[i+xmin][j+ymin].visible) //si on ne peut pas voir la tuile
                 {
-                    if ((inter->x/COTE)>=xmin-(sprites.fog->w)/2 && (inter->y/COTE)>=ymin -(sprites.fog->w)/2 && (inter->x/COTE)<=(xmin+xtaille)+(sprites.fog->w)/2 && (inter->y/COTE)<=(ymin+ytaille)+(sprites.fog->w)/2)
-                    {
-                        xfog = inter->x-joueur.xcamera;
-                        yfog = inter->y-joueur.ycamera;
-
-                        //blit(sprites.fog, fog, 0,0, inter->x-joueur.xcamera-(sprites.fog->w)/2, inter->y-joueur.ycamera-(sprites.fog->w)/2, 600, 600);
-
-                        for (i=0; i<600; i++)
-                        {
-                            for(j=0; j<600;j++)
-                            {
-                                getim=getpixel(sprites.fog,j,i);
-                                getdest=getpixel(raw,xfog-(sprites.fog->w)/2+j, yfog-(sprites.fog->w)/2+i);
-                                getbuf=getpixel(fog,xfog-(sprites.fog->w)/2+j, yfog-(sprites.fog->w)/2+i);
-
-
-                                if ((getim!=NOIR) && getim!=MAG && getbuf!=MAG )
-                                {
-                                    rim=getr(getim);
-                                    gim=getg(getim);
-                                    bim=getb(getim);
-
-                                    rdest=getr(getdest);
-                                    gdest=getg(getdest);
-                                    bdest=getb(getdest);
-
-                                    putpixel(fog,xfog-(sprites.fog->w)/2+j, yfog-(sprites.fog->w)/2+i,makecol((CLRBUF-CLRF)*rim+CLRF*rdest,(CLRBUF-CLRF)*gim+CLRF*gdest,(CLRBUF-CLRF)*bim+CLRF*bdest));
-
-                                    ///if (getbuf!=makecol(0,0,0)&&(getbuf!=makecol(255,0,0)))
-                                    ///{
-                                    ///    putpixel(fog, inter->x-joueur.xcamera-(sprites.fog->w)/2+j, inter->y-joueur.ycamera-(sprites.fog->w)/2+i,makecol(255,0,255));
-                                    ///}
-                                }
-                                if (getim==MAG)
-                                {
-                                    putpixel(fog, xfog-(sprites.fog->w)/2+j, yfog-(sprites.fog->w)/2+i,getim);
-                                }
-
-                            }
-                        }
-                    }
-                }
-
-            }
-
-//            for (i=0; i<joueur.yecran*COTE; i++)
-//            {
-//                for(j=0; j<joueur.xecran*COTE;j++)
-//                {
-//
-//                    getdest=getpixel(raw,j, i);
-//                    getbuf=getpixel(fog,j, i);
-//                    if(getbuf==makecol(75,75,75))
-//                    {
-//
-//                        rbuf=getr(getbuf);
-//                        gbuf=getg(getbuf);
-//                        bbuf=getb(getbuf);
-//                        rdest=getr(getdest);
-//                        gdest=getg(getdest);
-//                        bdest=getb(getdest);
-//                        putpixel(fog,j,i,makecol((CLRBUF-CLRF)*rbuf+CLRF*rdest,(CLRBUF-CLRF)*gbuf+CLRF*gdest,(CLRBUF-CLRF)*bbuf+CLRF*bdest));
-//                    }
-//                }
-//            }
-
-            masked_blit(fog, raw, 0,0,0,0, joueur.xecran*COTE, joueur.yecran*COTE);
-            destroy_bitmap(fog);
-        }
-        else
-        {
-            for (i=0;i<xtaille;i++)
-            {
-                for (j=0;j<ytaille;j++)
-                {
-                    if (!carte[i+xmin][j+ymin].visible) //si on ne peut pas voir la tuile
-                    {
-                        blit(sprites.brouillard, raw, 0, 0, xo + i*COTE, yo + j*COTE, COTE, COTE);
-                    }
+                    blit(sprites.brouillard, raw, 0, 0, xo + i*COTE, yo + j*COTE, COTE, COTE);
                 }
             }
         }
@@ -610,7 +526,6 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
     {
         rect(raw, joueur.xprev-joueur.xcamera, joueur.yprev-joueur.ycamera, mouse_x*((float)joueur.xecran/ECRANX), mouse_y*((float)joueur.yecran/ECRANY), VERT);
     }
-
 
 
     stretch_blit(raw, dest, 0, 0, joueur.xecran*COTE, joueur.yecran*COTE,0, 0, ECRANX*COTE, ECRANY*COTE);
