@@ -6,7 +6,9 @@
 ****************************************************/
 
 #include <iostream>
+#include <fstream>
 #include <list>
+#include <string>
 #include <allegro.h>
 
 //these have to be removed
@@ -446,6 +448,10 @@
 #define IGN_D RES "Down_border.bmp"
 
 
+
+class Unit;
+class Build;
+struct Tile;
 
 #endif // DEFINES_H_INCLUDED
 

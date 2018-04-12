@@ -221,8 +221,8 @@ BITMAP *minimap(list<Unit *>& ancre, Tile carte[MAPSIZEX][MAPSIZEY], Joueur& jou
     //on dessine les unités qu'il y a dessus
     for (auto& elem : ancre)
     {
-        x = DIV(elem->x);
-        y = DIV(elem->y);
+        x = DIV(elem->m_pos.x);
+        y = DIV(elem->m_pos.y);
         switch (elem->type)
         {
             case ENEMY:
@@ -295,19 +295,11 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
     Unit *inter = NULL;
     Build *bat = NULL;
     Tile chaque;
-    BITMAP *raw, *temp, *fog;
+    BITMAP *raw, *temp;
     double time_max, time_current;
     TIMESTRUCT now;
 
     int xval, yval;
-
-    int getim;
-    int getdest;
-    int getbuf;
-
-    int rim, gim, bim, rdest, gdest, bdest;
-
-    int xfog, yfog;
 
     //min est la borne des cases à déssiner
     int xmin, ymin, xtaille, ytaille, xo, yo; //xo et yo sont l'orignine, là à partir d'où on va déssiner sur l'écran
@@ -424,10 +416,10 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
     for (auto& elem : ancre_b)
     {
         bat = elem;
-        if ((bat->x+bat->w)>=xmin && (bat->y+bat->h)>=ymin && bat->x<=(xmin+xtaille) && bat->y<=(ymin+ytaille))
+        if ((bat->m_pos.x+bat->w)>=xmin && (bat->m_pos.y+bat->h)>=ymin && bat->m_pos.x<=(xmin+xtaille) && bat->m_pos.y<=(ymin+ytaille))
         {
             temp = draw_status(bat->hp_max, bat->hp, BAT);
-            draw_sprite(raw, temp, xo + (bat->x-xmin)*COTE + 37, yo + (bat->y-ymin)*COTE);
+            draw_sprite(raw, temp, xo + (bat->m_pos.x-xmin)*COTE + 37, yo + (bat->m_pos.y-ymin)*COTE);
             destroy_bitmap(temp);
 
             if (bat->curr_queue)
@@ -437,10 +429,10 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
                 time_current = getSec(bat->start, now);
 
                 temp = draw_status(time_max, time_current, TIME);
-                draw_sprite(raw, temp, xo + (bat->x-xmin)*COTE + 37, yo + (bat->y-ymin)*COTE - 20);
+                draw_sprite(raw, temp, xo + (bat->m_pos.x-xmin)*COTE + 37, yo + (bat->m_pos.y-ymin)*COTE - 20);
                 destroy_bitmap(temp);
 
-                textprintf_ex(raw, font, xo + (bat->x-xmin)*COTE +30, yo + (bat->y-ymin)*COTE - 15, ROUGE, -1, "%d", bat->curr_queue);
+                textprintf_ex(raw, font, xo + (bat->m_pos.x-xmin)*COTE +30, yo + (bat->m_pos.y-ymin)*COTE - 15, ROUGE, -1, "%d", bat->curr_queue);
             }
         }
     }
@@ -453,7 +445,9 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
         inter = elem;
         if (inter->state!=DEAD)
         {
-            if ((inter->x/COTE)>=xmin && (inter->y/COTE)>=ymin && (inter->x/COTE)<=(xmin+xtaille) && (inter->y/COTE)<=(ymin+ytaille))
+            xval = inter->m_pos.x;
+            yval = inter->m_pos.y;
+            if ((xval/COTE)>=xmin && (yval/COTE)>=ymin && (xval/COTE)<=(xmin+xtaille) && (yval/COTE)<=(ymin+ytaille))
             {
                 switch (inter->type)
                 {
@@ -475,16 +469,16 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
                 {
                     case RIGHT:
                     default:
-                    draw_sprite(raw, temp, inter->x-joueur.xcamera, inter->y-joueur.ycamera);
+                    draw_sprite(raw, temp, inter->m_pos.x-joueur.xcamera, inter->m_pos.y-joueur.ycamera);
                 break;
 
                     case LEFT:
-                    draw_sprite_h_flip(raw, temp, inter->x-joueur.xcamera, inter->y-joueur.ycamera);
+                    draw_sprite_h_flip(raw, temp, inter->m_pos.x-joueur.xcamera, inter->m_pos.y-joueur.ycamera);
                 break;
                 }
 
                 temp = draw_status((double)inter->hp_max, (double)inter->hp, UNIT);
-                draw_sprite(raw, temp, inter->x - joueur.xcamera, inter->y-10-joueur.ycamera);
+                draw_sprite(raw, temp, inter->m_pos.x - joueur.xcamera, inter->m_pos.y-10-joueur.ycamera);
                 destroy_bitmap(temp);
             }
         }
@@ -498,9 +492,9 @@ void draw_screen(BITMAP *dest, list<Unit *>& ancre, list<Build *>& ancre_b, Tile
         inter = elem;
         if (inter->state!=DEAD)
         {
-            if ((inter->x/COTE)>=xmin && (inter->y/COTE)>=ymin && (inter->x/COTE)<=(xmin+xtaille) && (inter->y/COTE)<=(ymin+ytaille))
+            if ((inter->m_pos.x/COTE)>=xmin && (inter->m_pos.y/COTE)>=ymin && (inter->m_pos.x/COTE)<=(xmin+xtaille) && (inter->m_pos.y/COTE)<=(ymin+ytaille))
             {
-                rect(raw, inter->x - joueur.xcamera, inter->y-joueur.ycamera, inter->x+inter->cote-joueur.xcamera, inter->y+inter->cote-joueur.ycamera, NOIR);
+                rect(raw, inter->m_pos.x - joueur.xcamera, inter->m_pos.y-joueur.ycamera, inter->m_pos.x+inter->cote-joueur.xcamera, inter->m_pos.y+inter->cote-joueur.ycamera, NOIR);
             }
 
         }

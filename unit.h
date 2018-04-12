@@ -3,12 +3,14 @@
 
 
 #include "defines.h"
+
+#include "coord.h"
+
 #include "timefuncs.h" //functions for measuring time N' stuff
 
 
-class Build;
 
-///le pas à faire (pour le pathfinding
+///le pas à faire (pour le pathfinding)
 typedef struct Step{
     int x, y;
     ///les points depuis le départ
@@ -34,8 +36,8 @@ class Unit{
 
     public:
 
-        int x, y;
-        int xdest, ydest;
+        Coord m_pos;
+        Coord m_dest;
 
         ///le prochain pas à faire (PAS VRAIMENT ENCORE IMPLÉMENTÉ)
         Step *step;
@@ -95,6 +97,9 @@ class Unit{
         Unit();
         Unit(int type, int priority, int x, int y, Build *bat);
         virtual ~Unit();
+
+        void sendStream(std::ostream& theStream, int version);
+        void receiveStream(std::istream& theStream, Tile carte[MAPSIZEX][MAPSIZEY], int version);
 
 ///une unité
 };

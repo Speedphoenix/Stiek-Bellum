@@ -2,21 +2,16 @@
 #define CHAINE_B_H_INCLUDED
 
 
-#include "chaine.h"
 #include "unit.h"
+#include "defines.h"
 
 
 ///un batiment
 class Build{
 
-    public:
+    public: //member variables
 
-        Build();
-        Build(int _x, int _y, int _w, int _h, int _side, int _state);
-        virtual ~Build();
-
-
-        int x, y;
+        Coord m_pos;
         int w, h;   //width height
 
         ///en construction, normal ou detruit
@@ -42,6 +37,15 @@ class Build{
         int curr_queue;
         ///l'instant au début de la formation de l'unité en cours de formation
         TIMESTRUCT start;
+
+    public:
+
+        Build();
+        Build(int _x, int _y, int _w, int _h, int _side, int _state);
+        virtual ~Build();
+
+        void sendStream(std::ostream& theStream, int version);
+        void receiveStream(std::istream& theStream, Tile carte[MAPSIZEX][MAPSIZEY], int version);
 
 
 ///un batiment

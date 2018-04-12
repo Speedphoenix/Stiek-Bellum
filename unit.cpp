@@ -1,4 +1,4 @@
-#include "chaine.h"
+#include "unit.h"
 
 /*
     UNE GRANDE PARTIE DES SOUS-PROGRAMMES DE CE FICHIER ONT ÉTÉ RECICLÉS DU MINI PROJET TP COLLECTION SUR DREAM THEATER (par Leonardo Jeanteur)
@@ -8,13 +8,15 @@
 
 #include "evennement.h"
 
+using namespace std;
+
 Unit::Unit()
 {
 
 }
 
 Unit::Unit(int _type, int _priority, int _x, int _y, Build *_bat)
-    :x(_x), y(_y), xdest(_x), ydest(_y), step(NULL), xpath(DIV(_x)),
+    :m_pos(_x, _y), m_dest(_x, _y), step(NULL), xpath(DIV(_x)),
     ypath(DIV(_y)), changepath(1), unitsize(1), frame(0), state(MOVING),
     priority(_priority), prec(MOVING), direction(RIGHT), cote(COTE), bat(_bat)
 {
@@ -87,5 +89,74 @@ Unit::~Unit()
 {
 
 }
+
+
+void Unit::sendStream(ostream& theStream, int version)
+{
+    Coord someCoords(-1, -1);
+
+    theStream << m_pos << m_dest << endl;
+
+    theStream << hp << " " << hp_max << " " << damage << " " << side << " " << type << " " << unitsize << endl;
+
+    theStream << frame << " " << state << " " << priority << " " << prec << " " << direction << endl;
+
+    theStream << cote << " " << prod << " ";
+    theStream << (int)(speed/SCALE);
+    theStream << " " << range << " " << delay << " " << vision << endl;
+
+
+    //on se permet de ne pas mettre les temps depuis la dernière animation/attaque
+
+
+    if (!bat || bat->hp<=0)
+        theStream << someCoords << endl;
+    else
+        theStream << bat->m_pos << endl;
+
+    theStream << endl;
+}
+
+
+void Unit::receiveStream(istream& theStream, Tile carte[MAPSIZEX][MAPSIZEY], int version)
+{
+    Coord taken;
+
+    theStream >> m_pos >> m_dest;
+
+    theStream >> hp >> hp_max >> damage >> side >> type >> unitsize;
+
+    theStream >> frame >> state >> priority >> prec >> direction;
+
+    theStream >> cote >> prod;
+
+    theStream >> speed;
+    speed*=SCALE;
+
+    theStream >> range >> delay >> vision;
+    E(vision)
+
+    //on se permet de ne pas mettre les temps depuis la dernière animation/attaque
+
+    theStream >> taken;
+
+    if (taken.x==-1 || taken.y==-1)
+        bat = nullptr;
+    else if (carte[taken.x][taken.y].erige)
+        bat = carte[taken.x][taken.y].erige;
+    else
+        bat = nullptr;
+
+
+    getTime(since_a); //les temps ne sont pas enregistrés
+    getTime(since_w);
+
+
+    changepath = 1;
+    step = nullptr;
+    xpath = DIV(m_dest.x);
+    ypath = DIV(m_dest.y);
+}
+
 
 //fin du fichier

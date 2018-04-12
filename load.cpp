@@ -92,170 +92,6 @@ void set_tile(Tile& tile, char type)
     tile.visible = 0; //au debut tous les blocks sont invisibles
 }
 
-//chargement de toute la map et des bitmaps
-void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, int num)
-{
-    int i, j, k;
-    FILE *fic;
-    char a, fichier[50];
-    int siz, x, y;
-    Unit *unite;
-    Build *bat;
-
-    //on fait le nom du fichier
-    sprintf(fichier, NAME, SAUV, num, MAP);
-
-    //chargement de la map depuis un fichier
-    fic = fopen(fichier, "r"); ERR_CHARG(fic)
-
-    for (j=0;j<MAPSIZEY;j++)
-    {
-        for (i=0;i<MAPSIZEX;i++)
-        {
-            fscanf(fic, "%c%c", &carte[i][j].type, &a); //chaque tuile
-            set_tile(carte[i][j], a);
-        }
-        fscanf(fic, "\n");
-    }
-    fclose(fic);
-    //fin du chargement de la map
-
-
-    sprintf(fichier, NAME, SAUV, num, FOG);
-
-    fic = fopen(fichier, "r");
-    //chargement du brouillard de guerre s'il y en a un
-    if (fic!=NULL)
-    {
-        for (j=0;j<MAPSIZEY;j++)
-        {
-            i = 0;
-            while (i<MAPSIZEX)
-            {
-                fscanf(fic, "%d %d ", &x, &y);
-                for (k=0;k<y;k++)
-                {
-                    carte[i][j].visible = x;
-                    i++;
-                }
-            }
-            fscanf(fic, "\n");
-        }
-
-        fclose(fic);
-    }
-
-
-    //assemblage de l'autre nom
-    sprintf(fichier, NAME, SAUV, num, VALS);
-
-    fic = fopen(fichier, "r");ERR_CHARG(fic)
-
-    //chargement des autres valeurs
-
-    fscanf(fic, "%d\n", &siz);
-
-
-    for (i=0;i<siz;i++) //chaquee batiment
-    {
-        bat = new Build();
-        fscanf(fic, "%d %d %d %d\n", &bat->x, &bat->y, &bat->w, &bat->h);
-        fscanf(fic, "%d %d %d %d %d %d\n", &bat->state, &bat->side, &bat->hp, &bat->hp_max, &bat->range, &bat->damage);
-        fscanf(fic, "%d %d\n", &bat->cap, &bat->statione);
-
-        fscanf(fic, "\n");
-
-        for (k=0;k<bat->w;k++)
-        {
-            for (j=0;j<bat->h;j++) //toutes les cases (tuiles)
-            {
-                carte[bat->x+k][bat->y+j].erige = bat; //on y met le pointeur sur batiment
-            }
-        }
-
-        fscanf(fic, "%d\n\n", &bat->curr_queue); //on met les unités en formation
-        for (j=0;i<bat->curr_queue;i++)
-        {
-            fscanf(fic, "%d\n", &bat->unit_queue[i]);
-        }
-
-        getTime(bat->start);
-
-        //on éclaire la zone
-        if (bat->side==ALLY)
-        {
-            eclaire(carte, (bat->x+bat->w/2)*COTE, (bat->y+bat->h/2)*COTE, 4);
-        }
-
-
-        ancre_b.push_back(bat); //on l'ajoute à la liste chainée
-    }
-
-    fscanf(fic, "\n\n%d\n\n", &siz);
-
-    for (i=0;i<siz;i++) //pour chaque unite
-    {
-        unite = new Unit();
-
-        fscanf(fic, "%d %d %d %d\n", &unite->x, &unite->y, &unite->xdest, &unite->ydest);
-        fscanf(fic, "%d %d %d %d %d %d\n", &unite->hp, &unite->hp_max, &unite->damage, &unite->side, &unite->type, &unite->unitsize);
-        fscanf(fic, "%d %d %d %d %d\n", &unite->frame, &unite->state, &unite->priority, &unite->prec, &unite->direction);
-        fscanf(fic, "%d %d %d %d %f %d\n", &unite->cote, &unite->prod, &unite->speed, &unite->range, &unite->delay, &unite->vision);
-
-
-        fscanf(fic, "%d %d\n", &x, &y);
-
-        if (x==-1 || y==-1)
-            unite->bat = NULL;
-        else if (carte[x][y].erige)
-            unite->bat = carte[x][y].erige;
-        else
-            unite->bat = NULL;
-
-        getTime(unite->since_a); //les temps ne sont pas enregistrés
-        getTime(unite->since_w);
-
-        unite->speed*=SCALE;
-
-        unite->changepath = 1;
-        unite->step = NULL;
-        unite->xpath = DIV(unite->xdest);
-        unite->ypath = DIV(unite->ydest);
-
-        ancre.push_back(unite);
-
-        fscanf(fic, "\n");
-    }
-
-    //les valeurs "globales" - -on remplit la structure joueur
-    fscanf(fic, "\n\n\n");
-
-    fscanf(fic, "%d %d %d %d\n", &joueur.xcamera, &joueur.ycamera, &joueur.xecran, &joueur.yecran);
-    fscanf(fic, "%d %d %d %d\n", &joueur.bois, &joueur.marbre, &joueur.viande, &joueur.nend_b);
-    fscanf(fic, "%d %d\n", &joueur.level, &joueur.map_num);
-
-    joueur.quit = 0;
-    joueur.change = 1;
-    joueur.chang_taill = 1;
-
-    joueur.prevwheel = mouse_z;
-    joueur.act = RIEN;
-    joueur.clic_prec = 0;
-
-    getTime(joueur.last_spawn);
-    getTime(joueur.last_clic);
-
-    fscanf(fic, "%d\n", &siz);
-    getTime(joueur.debut);
-    addSec(joueur.debut, (-1 * siz));
-
-    joueur.pause = 0;
-
-    fscanf(fic, "\n");
-
-    fclose(fic);
-}
-
 //sauvegarde toute la partie dans un fichier de sauvegarde
 void save_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, int num)
 {
@@ -264,14 +100,15 @@ void save_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
     Unit *unite;
     Build *bat;
     FILE *fic;
-    char fichier[50];
+    char filename[50];
     int val, counter;
+    ofstream outStream;
 
     getTime(now);
 
-    sprintf(fichier, NAME, SAUV, num, MAP); //on assemble le nom du fichier
+    sprintf(filename, NAME, SAUV, num, MAP); //on assemble le nom du fichier
 
-    fic = fopen(fichier, "w");
+    fic = fopen(filename, "w");
     //sauvegarde de la map (ne sauvegarde pas la quantité de ressources. ni la visibilité :'(..)
     for (j=0;j<MAPSIZEY;j++)
     {
@@ -285,9 +122,9 @@ void save_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
     fclose(fic);
 
 
-    sprintf(fichier, NAME, SAUV, num, FOG);
+    sprintf(filename, NAME, SAUV, num, FOG);
 
-    fic = fopen(fichier, "w");
+    fic = fopen(filename, "w");
     //sauvegarde du brouillard de guerre
     for (j=0;j<MAPSIZEY;j++)
     {
@@ -313,66 +150,154 @@ void save_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *
     fclose(fic);
 
 
-    sprintf(fichier, NAME, SAUV, num, VALS); //on assemble le nom du deuxième fichier
+    sprintf(filename, NAME, SAUV, num, VALS); //on assemble le nom du deuxième fichier
 
-    fic = fopen(fichier, "w");
+    outStream.open(filename, ios::out | ios::trunc); ERR_CHARG(outStream)
+    //fic = fopen(filename, "w");
     //sauvegarde des autres valeurs
 
-    fprintf(fic, "%d\n", (int)ancre_b.size());
+    outStream << endl << endl << endl << ancre_b.size() << endl << endl;
 
     for (auto& elem : ancre_b)
     {
         //on sauvegarde les batiments
-        bat = elem;     ///REMPLACER BAT PAR ELEM DANS CETTE BOUCLE
-        fprintf(fic, "%d %d %d %d\n", bat->x, bat->y, bat->w, bat->h);
-        fprintf(fic, "%d %d %d %d %d %d\n", bat->state, bat->side, bat->hp, bat->hp_max, bat->range, bat->damage);
-        fprintf(fic, "%d %d\n", bat->cap, bat->statione);
-
-        fprintf(fic, "\n");
-
-        fprintf(fic, "%d\n\n", bat->curr_queue);
-        for (i=0;i<bat->curr_queue;i++) //la queue de formation d'unités
-        {
-            fprintf(fic, "%d\n", bat->unit_queue[i]);
-        }
+        elem->sendStream(outStream, 1);
     }
 
-
-    fprintf(fic, "\n\n\n%d\n\n", (int)ancre.size());
+    outStream << endl << endl << endl << ancre.size() << endl << endl;
 
     for (auto& elem : ancre) //on sauvegarde toutes les unités
     {
-        unite = elem;
-        fprintf(fic, "%d %d %d %d\n", unite->x, unite->y, unite->xdest, unite->ydest);
-        fprintf(fic, "%d %d %d %d %d %d\n", unite->hp, unite->hp_max, unite->damage, unite->side, unite->type, unite->unitsize);
-        fprintf(fic, "%d %d %d %d %d\n", unite->frame, unite->state, unite->priority, unite->prec, unite->direction);
-        fprintf(fic, "%d %d %d %d %f %d\n", unite->cote, unite->prod, (int)(unite->speed/SCALE), unite->range, unite->delay, unite->vision);
-        //on se permet de ne pas mettre les temps depuis la dernière animation/attaque
+        elem->sendStream(outStream, 1);
+    }
 
-        if (!unite->bat)
-            fprintf(fic, "%d %d\n", -1, -1);
-        else if (unite->bat->hp<=0)
-            fprintf(fic, "%d %d\n", -1, -1);
-        else
-            fprintf(fic, "%d %d\n", unite->bat->x, unite->bat->y);
+    outStream << endl << endl << endl;
 
-        fprintf(fic, "\n");
+    //les valeurs "globales" (on ecrit la structure joueur)
+    outStream << joueur.xcamera << " " << joueur.ycamera << " " << joueur.xecran << " " << joueur.yecran << endl;
+    outStream << joueur.bois << " " << joueur.marbre << " " << joueur.viande << " " << joueur.nend_b << endl;
+    outStream << joueur.level << " " << joueur.map_num << endl;
+
+    //on ne met pas prevwheel
+    //on ne met pas non plus les valeurs à petite durée d'utilisation
+    outStream << getSecInt(joueur.debut, now) << endl;
+
+    outStream << endl;
+
+    outStream.close();
+}
+
+//chargement de toute la map et des bitmaps
+void load_game(Tile carte[MAPSIZEX][MAPSIZEY], list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, int num)
+{
+    int i, j, k;
+    FILE *fic;
+    char a, filename[50];
+    int siz, x, y;
+    Unit *unite;
+    Build *bat;
+    ifstream inStream;
+
+    //on fait le nom du fichier
+    sprintf(filename, NAME, SAUV, num, MAP);
+
+    //chargement de la map depuis un fichier
+    fic = fopen(filename, "r"); ERR_CHARG(fic)
+
+    for (j=0;j<MAPSIZEY;j++)
+    {
+        for (i=0;i<MAPSIZEX;i++)
+        {
+            fscanf(fic, "%c%c", &carte[i][j].type, &a); //chaque tuile
+            set_tile(carte[i][j], a);
+        }
+        fscanf(fic, "\n");
+    }
+    fclose(fic);
+    //fin du chargement de la map
+
+
+    sprintf(filename, NAME, SAUV, num, FOG);
+
+    fic = fopen(filename, "r");
+    //chargement du brouillard de guerre s'il y en a un
+    if (fic!=NULL)
+    {
+        for (j=0;j<MAPSIZEY;j++)
+        {
+            i = 0;
+            while (i<MAPSIZEX)
+            {
+                fscanf(fic, "%d %d ", &x, &y);
+                for (k=0;k<y;k++)
+                {
+                    carte[i][j].visible = x;
+                    i++;
+                }
+            }
+            fscanf(fic, "\n");
+        }
+
+        fclose(fic);
     }
 
 
-    fprintf(fic, "\n\n\n");
+    //assemblage de l'autre nom
+    sprintf(filename, NAME, SAUV, num, VALS);
 
-    //les valeurs "globales" (on ecrit la structure joueur)
-    fprintf(fic, "%d %d %d %d\n", joueur.xcamera, joueur.ycamera, joueur.xecran, joueur.yecran);
-    fprintf(fic, "%d %d %d %d\n", joueur.bois, joueur.marbre, joueur.viande, joueur.nend_b);
-    fprintf(fic, "%d %d\n", joueur.level, joueur.map_num);
-    //on ne met pas prevwheel
-    //on ne met pas non plus les valeurs à petite durée d'utilisation
-    fprintf(fic, "%d\n", getSecInt(joueur.debut, now));
+    //chargement des autres valeurs
+    inStream.open(filename, ios::in); ERR_CHARG(inStream)
 
-    fprintf(fic, "\n");
+    //fic = fopen(filename, "r");ERR_CHARG(fic)
 
-    fclose(fic);
+    inStream >> siz;
+
+    for (i=0;i<siz;i++) //chaque batiment
+    {
+        bat = new Build();
+
+        bat->receiveStream(inStream, carte, 1);
+
+        ancre_b.push_back(bat); //on l'ajoute à la liste chainée
+    }
+
+    inStream >> siz;
+
+    for (i=0;i<siz;i++) //pour chaque unite
+    {
+        unite = new Unit();
+
+        unite->receiveStream(inStream, carte, 1);
+
+        ancre.push_back(unite);
+    }
+
+    //les valeurs "globales" - -on remplit la structure joueur
+
+    inStream >> joueur.xcamera >> joueur.ycamera >> joueur.xecran >> joueur.yecran;
+    inStream >> joueur.bois >> joueur.marbre >> joueur.viande >> joueur.nend_b;
+    inStream >> joueur.level >> joueur.map_num;
+
+
+    joueur.quit = 0;
+    joueur.change = 1;
+    joueur.chang_taill = 1;
+
+    joueur.prevwheel = mouse_z;
+    joueur.act = RIEN;
+    joueur.clic_prec = 0;
+
+    getTime(joueur.last_spawn);
+    getTime(joueur.last_clic);
+
+    inStream >> siz;
+
+    getTime(joueur.debut);
+    addSec(joueur.debut, (-1 * siz));
+
+    joueur.pause = 0;
+
+    inStream.close();
 }
 
 //remet tout à zero

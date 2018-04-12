@@ -54,8 +54,8 @@ void destroy_build(list<Build *>& ancre, list<Build *>::iterator& del, Tile cart
 {
     int i, j;
     Build *build = *del;
-    int x = build->x;
-    int y = build->y;
+    int x = build->m_pos.x;
+    int y = build->m_pos.y;
 
     for (i=0;i<build->w;i++) //on enleve le batiment de la carte
     {
@@ -218,8 +218,8 @@ void action_ecran(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, T
                 {
                     if (elem->priority<=ORDRE) //si la priorité est inferieure
                     {
-                        elem->xdest = x; //on met les nouvelles coordonnées dans le GPS
-                        elem->ydest = y;
+                        elem->m_dest.x = x; //on met les nouvelles coordonnées dans le GPS
+                        elem->m_dest.y = y;
                         elem->state = MOVING;
                         elem->priority = ORDRE;
                         elem->prec = MOVING;
@@ -281,8 +281,8 @@ void action_ecran(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, T
                     {
                         if (elem->priority<=ORDRE && elem->prod)
                         {
-                            elem->xdest = x;
-                            elem->ydest = y;
+                            elem->m_dest.x = x;
+                            elem->m_dest.y = y;
                             elem->state = MOVING;
                             elem->prec = MOVING;
                             elem->priority = ORDRE;
@@ -315,8 +315,8 @@ void action_ecran(list<Unit *>& ancre, list<Build *>& ancre_b, Joueur& joueur, T
             if (DIV(x)==DIV(joueur.xprev) && DIV(y)==DIV(joueur.yprev) && //si la souris n'a pas changé de case
                 (bat && (bat->hp==bat->hp_max && bat->side==ALLY)))         //s'il y a un batiment allié à utiliser
             {                                                               //et si ce batiment est utilisable
-                joueur.xprev = bat->x; //on prend les coordonnées du batiment
-                joueur.yprev = bat->y;
+                joueur.xprev = bat->m_pos.x; //on prend les coordonnées du batiment
+                joueur.yprev = bat->m_pos.y;
                 joueur.act = SELECT_BUILD; //on passe en mode batiment selectionné
                 joueur.type = (int)(carte[DIV(x)][DIV(y)].position/4); //on garde le type du batiment (mairie ou caserne)
             }
@@ -401,8 +401,8 @@ void action_ui(list<Unit *>& ancre, Joueur& joueur, Tile carte[MAPSIZEX][MAPSIZE
                 {
                     if (elem->priority<=ORDRE) //si on a la priorité
                     {
-                        elem->xdest         = x * COTE;
-                        elem->ydest         = y * COTE; //on met les nouvelles coordonnées dans le GPS
+                        elem->m_dest.x      = x * COTE;
+                        elem->m_dest.y      = y * COTE; //on met les nouvelles coordonnées dans le GPS
                         elem->state         = MOVING;
                         elem->priority      = ORDRE;
                         elem->prec          = MOVING;
@@ -579,8 +579,8 @@ Unit *trouve(list<Unit *>& ancre, int x, int y, Unit *exclu, int side_excl)
 
     for (auto& elem : ancre)
     {
-        ix = elem->x;
-        iy = elem->y;
+        ix = elem->m_pos.x;
+        iy = elem->m_pos.y;
         siz = elem->cote;
         if (x<=(ix+siz) && x>=ix && y<=(iy+siz) && y>=iy) //s'il x et y sont à l'interieur de l'unité
         {
@@ -619,8 +619,8 @@ void selec(list<Unit *>& dest, list<Unit *>& ancre, int x1, int y1, int x2, int 
     {
         if (elem->side==ALLY) //on ne prend que les alliés
         {
-            ix = elem->x;
-            iy = elem->y;
+            ix = elem->m_pos.x;
+            iy = elem->m_pos.y;
             siz = elem->cote;
 
             if (((ix<=x1 && (ix+siz)>=x1) || (ix>=x1 && ix<=x2)) && //on teste si il a un bout du rectangle de selection qui touche un bout de la zone autours de l'unité
