@@ -2,7 +2,6 @@
 #define CHAINE_B_H_INCLUDED
 
 
-#include "chaine.h"
 #include "unit.h"
 
 

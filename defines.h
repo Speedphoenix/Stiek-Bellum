@@ -21,7 +21,7 @@
 ****************************************************/
 
 /* pour enlever tous les trucs qui empechent de tester... */
-#define TEST 0
+#define TEST 1
 #define LAG 1       //fog of war avancé par exemple
 #define HOW_LONG 0  //affiche le temps écoulé à chaque tour de boucle
 
