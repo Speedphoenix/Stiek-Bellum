@@ -1,6 +1,5 @@
 # Stiek-Bellum
 
----
 <!---
 ![ ](/Res/Menu.bmp?raw=true) 
 -->
